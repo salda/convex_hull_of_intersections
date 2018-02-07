@@ -46,8 +46,22 @@ int main() {
         for (auto& element_to_check_intersection : elements) {
             if (&element_to_check_intersection == &element)
                 break;
-            if (element.lower_left_x < element_to_check_intersection.lower_left_x && )
-                ;
+            if (((element.lower_left_x >= element_to_check_intersection.lower_left_x && element.lower_left_x <= element_to_check_intersection.top_right_x) ||
+                (element_to_check_intersection.lower_left_x >= element.lower_left_x && element_to_check_intersection.lower_left_x <= element.top_right_x))
+                && ((element.lower_left_y >= element_to_check_intersection.lower_left_y && element.lower_left_y <= element_to_check_intersection.top_right_y) ||
+                (element_to_check_intersection.lower_left_y >= element.lower_left_y && element_to_check_intersection.lower_left_y <= element.top_right_y)))
+            {
+                    if (element.type == square_area::square_area_line)
+                        if (element_to_check_intersection.type == square_area::square_area_line)
+                            ;
+                        else
+                            ;
+                    else
+                        if (element_to_check_intersection.type == square_area::square_area_line)
+                            ;
+                        else
+                            ;
+            }
         }
     }
 }
