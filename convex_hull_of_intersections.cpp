@@ -66,7 +66,7 @@ int main() {
                 && ((element.lower_left_y >= element_to_check_intersection.lower_left_y && element.lower_left_y <= element_to_check_intersection.top_right_y) ||
                 (element_to_check_intersection.lower_left_y >= element.lower_left_y && element_to_check_intersection.lower_left_y <= element.top_right_y)))
             {
-                if (element.type == square_area::square_area_line && element_to_check_intersection.type == square_area::square_area_line) { // TODO caching
+                if (element.type == square_area::square_area_line && element_to_check_intersection.type == square_area::square_area_line) { // TODO caching + optimize
                     int element_square_x_length = element.second_x - element.first_x;
                     int element_square_y_length = element.second_y - element.first_y;
                     int element_to_check_intersection_square_x_length = element_to_check_intersection.second_x - element_to_check_intersection.first_x;
@@ -86,7 +86,7 @@ int main() {
 
                     collisions.emplace(element.first_x + (t * element_square_x_length), element.first_y + (t * element_square_y_length));
                 }
-                else if (element.type == square_area::square_area_circle && element_to_check_intersection.type == square_area::square_area_circle) { // TODO caching
+                else if (element.type == square_area::square_area_circle && element_to_check_intersection.type == square_area::square_area_circle) { // TODO caching + optimize
                     double distance_between_centers_x = element_to_check_intersection.center_x - element.center_x;
                     double distance_between_centers_y = element_to_check_intersection.center_y - element.center_y;
                     double distance_between_centers = hypot(distance_between_centers_x, distance_between_centers_y);
@@ -108,7 +108,7 @@ int main() {
                     collisions.emplace(intersection_area_center_x + helper4,  intersection_area_center_y - helper3);
                     collisions.emplace(intersection_area_center_x - helper4,  intersection_area_center_y + helper3);
                 }
-                else {
+                else { // TODO caching + optimize
                     square_area& line = element.type == square_area::square_area_line ? element : element_to_check_intersection;
                     square_area& circle = element.type == square_area::square_area_circle ? element : element_to_check_intersection;
                     
@@ -130,12 +130,14 @@ int main() {
                     double distance_from_circle_center_to_line = sqrt(circle.radius * circle.radius - distance_between_center_and_line * distance_between_center_and_line);
                     
                     double helper1 = distance_from_A_to_closest_point_to_circle_center_on_line - distance_from_circle_center_to_line;
-                    if (helper1 / line_length >= 0 && helper1 / line_length <= 1) // TODO optimize "helper1 / line_length"
+                    double helper3 = helper1 / line_length;
+                    if (helper3 >= 0 && helper3 <= 1)
                         collisions.emplace(line.first_x + helper1 * Dx,  line.first_y + helper1 * Dy);
 
-                    double helper2 = distance_from_A_to_closest_point_to_circle_center_on_line + distance_from_circle_center_to_line;
                     if (distance_between_center_and_line != circle.radius) {
-                        if (helper2 / line_length >= 0 && helper2 / line_length <= 1) // TODO optimize "helper2 / line_length"
+                        double helper2 = distance_from_A_to_closest_point_to_circle_center_on_line + distance_from_circle_center_to_line;
+                        double helper4 = helper2 / line_length;
+                        if (helper4 >= 0 && helper4 <= 1)
                             collisions.emplace(line.first_x + helper2 * Dx,  line.first_y + helper2 * Dy);
                     }
                 }
