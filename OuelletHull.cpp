@@ -81,16 +81,15 @@ void OuelletHull::CalcConvexHull() {
 		pPt++;
 	}
 
-	pair<double, double> q1rootPt = { q1p2.first, q1p1.second };
-	pair<double, double> q2rootPt = { q2p1.first, q2p2.second };
-	pair<double, double> q3rootPt = { q3p2.first, q3p1.second };
-	pair<double, double> q4rootPt = { q4p1.first, q4p2.second };
+	pair<double, double> q1rootPt { q1p2.first, q1p1.second };
+	pair<double, double> q2rootPt { q2p1.first, q2p2.second };
+	pair<double, double> q3rootPt { q3p2.first, q3p1.second };
+	pair<double, double> q4rootPt { q4p1.first, q4p2.second };
 
 	// *************************
 	// Q1 Init
 	// *************************
 	quadrants[0] = vector<pair<double, double>>();
-
 	quadrants[0].push_back(q1p1);
 	if (!compare_points(q1p1, q1p2))
 		quadrants[0].push_back(q1p2);
@@ -99,7 +98,6 @@ void OuelletHull::CalcConvexHull() {
 	// Q2 Init
 	// *************************
 	quadrants[1] = vector<pair<double, double>>();
-
 	quadrants[1].push_back(q2p1);
 	if (!compare_points(q2p1, q2p2))
 		quadrants[1].push_back(q2p2);
@@ -108,7 +106,6 @@ void OuelletHull::CalcConvexHull() {
 	// Q3 Init
 	// *************************
 	quadrants[2] = vector<pair<double, double>>();
-
 	quadrants[2].push_back(q3p1);
 	if (!compare_points(q3p1, q3p2))
 		quadrants[2].push_back(q3p2);
@@ -117,7 +114,6 @@ void OuelletHull::CalcConvexHull() {
 	// Q4 Init
 	// *************************
 	quadrants[3] = vector<pair<double, double>>();
-
 	quadrants[3].push_back(q4p1);
 	if (!compare_points(q4p1, q4p2))
 		quadrants[3].push_back(q4p2);
@@ -130,8 +126,6 @@ void OuelletHull::CalcConvexHull() {
 	int index;
 	int indexLow;
 	int indexHi;
-
-	// Currently hardcoded, could be calculated or pass as argument by user, dynamic, grow as needed
 
 	pPt = points.data();
 
@@ -433,7 +427,6 @@ void OuelletHull::CalcConvexHull() {
 		}
 
 	currentPointNotPartOfq4Hull:
-		
 		// *************************************** All quadrant are done
 
 	nextPoint:
@@ -447,8 +440,8 @@ OuelletHull::OuelletHull(vector<pair<double, double>> points) {
 }
 
 vector<pair<double, double>> OuelletHull::GetResultAsVector() {
-	if (!this->points.size())
-		return vector<pair<double, double>>();
+	if (this->points.empty())
+		return {};
 
 	unsigned int indexQ1Start;
 	unsigned int indexQ2Start;
@@ -464,76 +457,55 @@ vector<pair<double, double>> OuelletHull::GetResultAsVector() {
 	pair<double, double> pointLast = quadrants[0][indexQ1End];
 
 	if (quadrants[1].size() == 1) {
-		if (compare_points(quadrants[1].front(), pointLast)) {
+		indexQ2End = 0;
+		if (compare_points(quadrants[1].front(), pointLast))
 			indexQ2Start = 1;
-			indexQ2End = 0;
-		}
 		else {
 			indexQ2Start = 0;
-			indexQ2End = 0;
 			pointLast = quadrants[1].front();
 		}
 	}
 	else {
-		if (compare_points(quadrants[1].front(), pointLast))
-			indexQ2Start = 1;
-		else
-			indexQ2Start = 0;
+		indexQ2Start = compare_points(quadrants[1].front(), pointLast) ? 1 : 0;
 		indexQ2End = quadrants[1].size() - 1;
 		pointLast = quadrants[1][indexQ2End];
 	}
 
 	if (quadrants[2].size() == 1) {
-		if (compare_points(quadrants[2].front(), pointLast)) {
+		indexQ3End = 0;
+		if (compare_points(quadrants[2].front(), pointLast))
 			indexQ3Start = 1;
-			indexQ3End = 0;
-		}
 		else {
 			indexQ3Start = 0;
-			indexQ3End = 0;
 			pointLast = quadrants[2].front();
 		}
 	}
 	else {
-		if (compare_points(quadrants[2].front(), pointLast))
-			indexQ3Start = 1;
-		else
-			indexQ3Start = 0;
+		indexQ3Start = compare_points(quadrants[2].front(), pointLast) ? 1 : 0;
 		indexQ3End = quadrants[2].size() - 1;
 		pointLast = quadrants[2][indexQ3End];
 	}
 
 	if (quadrants[3].size() == 1) {
-		if (compare_points(quadrants[3].front(), pointLast)) {
+		indexQ4End = 0;
+		if (compare_points(quadrants[3].front(), pointLast))
 			indexQ4Start = 1;
-			indexQ4End = 0;
-		}
 		else {
 			indexQ4Start = 0;
-			indexQ4End = 0;
 			pointLast = quadrants[3].front();
 		}
 	}
 	else {
-		if (compare_points(quadrants[3].front(), pointLast))
-			indexQ4Start = 1;
-		else
-			indexQ4Start = 0;
-
+		indexQ4Start = compare_points(quadrants[3].front(), pointLast) ? 1 : 0;
 		indexQ4End = quadrants[3].size() - 1;
 		pointLast = quadrants[3][indexQ4End];
 	}
 
 	if (compare_points(quadrants[0][indexQ1Start], pointLast))
-		indexQ1Start++;
+		++indexQ1Start;
 
-	int countOfFinalHullPoint = (indexQ1End - indexQ1Start) +
-		(indexQ2End - indexQ2Start) +
-		(indexQ3End - indexQ3Start) +
-		(indexQ4End - indexQ4Start) + 4;
-
-	if (countOfFinalHullPoint <= 1) // Case where there is only one point or many of only the same point. Auto closed if required.
-		return vector<pair<double, double>> {pointLast};
+	if (indexQ1End - indexQ1Start + indexQ2End - indexQ2Start + indexQ3End - indexQ3Start + indexQ4End - indexQ4Start + 4 <= 1)
+		return { pointLast };
 
 	vector<pair<double, double>> results;
 	for (int n = indexQ1Start; n <= indexQ1End; ++n)

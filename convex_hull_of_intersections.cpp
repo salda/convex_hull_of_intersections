@@ -152,6 +152,9 @@ int main() {
         cout << collision.first << " " << collision.second << endl;
     OuelletHull convexHull(move(collisions_vector));
     vector<pair<double, double>> convex_hull = convexHull.GetResultAsVector();
+    cout << convex_hull.size() << endl;
+    for (auto& element : convex_hull)
+        cout << element.first << " " << element.second << endl;
     cin.sync();
     cin.ignore();
 }
