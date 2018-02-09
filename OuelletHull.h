@@ -1,5 +1,7 @@
 #include <cmath>
 #include <array>
+#include <vector>
+#include <set>
 
 using namespace std;
 
@@ -29,8 +31,7 @@ class OuelletHull {
 	static const int _quadrantHullPointArrayInitialCapacity = 1000;
 	static const int _quadrantHullPointArrayGrowSize = 1000;
 
-	point* _pPoints;
-	int _countOfPoint;
+	set<pair<double, double>> _pPoints;
     array<quadrant, 4> quadrants;
 
 	void CalcConvexHull();
@@ -39,9 +40,7 @@ class OuelletHull {
 	inline static void RemoveRange(point* pPoint, int indexStart, int indexEnd, int &count);
 
 public:
-	OuelletHull(point* points, int countOfPoint);
+	OuelletHull(set<pair<double, double>>& points);
 	~OuelletHull();
-	point* GetResultAsArray(int& count);
+	vector<pair<double, double>> GetResultAsVector();
 };
-
-point* ouelletHull(point* pArrayOfPoint, int count, int& resultCount);

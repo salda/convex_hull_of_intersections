@@ -1,13 +1,9 @@
 #include "OuelletHull.h"
 #include <string>
 #include <vector>
+#include <set>
 
 using namespace std;
-
-point* ouelletHull(point* pArrayOfPoint, int count, int& resultCount) {
-	OuelletHull convexHull(pArrayOfPoint, count);
-	return convexHull.GetResultAsArray(resultCount);
-}
 
 void OuelletHull::CalcConvexHull() {
 	// Find the quadrant limits (maximum x and y)
@@ -24,7 +20,7 @@ void OuelletHull::CalcConvexHull() {
 
 	pPt++;
 
-	for (int n = _countOfPoint - 1; n > 0; --n) { // -1 because 0 bound.
+	for (int n = this->_pPoints.size() - 1; n > 0; --n) { // -1 because 0 bound.
 		point& pt = *pPt;
 
 		// Right
@@ -156,7 +152,7 @@ void OuelletHull::CalcConvexHull() {
 
 	pPt = _pPoints;
 
-	for (int n = _countOfPoint - 1; n >= 0; --n) { // -1 because 0 bound.
+	for (int n = this->_pPoints.size() - 1; n >= 0; --n) { // -1 because 0 bound.
 		point& pt = *pPt;
 
 		// ****************************************************************
@@ -488,9 +484,8 @@ void OuelletHull::RemoveRange(point* pPoint, int indexStart, int indexEnd, int &
 	count -= (indexEnd - indexStart + 1);
 }
 
-OuelletHull::OuelletHull(point* points, int countOfPoint) {
+OuelletHull::OuelletHull(set<pair<double, double>>& points) {
 	_pPoints = points;
-	_countOfPoint = countOfPoint;
 
 	CalcConvexHull();
 }
@@ -502,10 +497,9 @@ OuelletHull::~OuelletHull() {
 	delete quadrants[3].pHullPoints;
 }
 
-point* OuelletHull::GetResultAsArray(int& hullPointCount) {
-	hullPointCount = 0;
-	if (this->_countOfPoint == 0)
-		return nullptr;
+vector<pair<double, double>> OuelletHull::GetResultAsVector() {
+	if (!this->_pPoints.size())
+		return vector<pair<double, double>>();
 
 	unsigned int indexQ1Start;
 	unsigned int indexQ2Start;
@@ -596,27 +590,17 @@ point* OuelletHull::GetResultAsArray(int& hullPointCount) {
 
 	int resIndex = 0;
 
-	for (int n = indexQ1Start; n <= indexQ1End; ++n) {
-		results[resIndex] = quadrants[0].pHullPoints[n];
-		resIndex++;
-	}
+	for (int n = indexQ1Start; n <= indexQ1End; ++n)
+		results[resIndex++] = quadrants[0].pHullPoints[n];
 
-	for (int n = indexQ2Start; n <= indexQ2End; ++n) {
-		results[resIndex] = quadrants[1].pHullPoints[n];
-		resIndex++;
-	}
+	for (int n = indexQ2Start; n <= indexQ2End; ++n)
+		results[resIndex++] = quadrants[1].pHullPoints[n];
 
-	for (int n = indexQ3Start; n <= indexQ3End; ++n) {
-		results[resIndex] = quadrants[2].pHullPoints[n];
-		resIndex++;
-	}
+	for (int n = indexQ3Start; n <= indexQ3End; ++n)
+		results[resIndex++] = quadrants[2].pHullPoints[n];
 
-	for (int n = indexQ4Start; n <= indexQ4End; ++n) {
-		results[resIndex] = quadrants[3].pHullPoints[n];
-		resIndex++;
-	}
-
-	hullPointCount = countOfFinalHullPoint;
+	for (int n = indexQ4Start; n <= indexQ4End; ++n)
+		results[resIndex++] = quadrants[3].pHullPoints[n];
 
 	return results;
 }

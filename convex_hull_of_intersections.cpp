@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iomanip>
 #include <set>
+#include "OuelletHull.h"
 
 using namespace std;
 
@@ -148,6 +149,8 @@ int main() {
     cout << collisions.size() << endl << fixed << setprecision(4);
     for (auto& collision : collisions)
         cout << collision.first << " " << collision.second << endl;
+    OuelletHull convexHull(collisions);
+    vector<pair<double, double>> convex_hull = convexHull.GetResultAsVector();
     cin.sync();
     cin.ignore();
 }
