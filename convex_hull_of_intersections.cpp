@@ -8,7 +8,7 @@
 
 using namespace std;
 
-struct square_area { // in this task, I use "line" instead of "line segment", because it's shorter
+struct square_area { // in this task, I use "line" instead of "line segment", because it's shorter and it's obvious it's a segment
     int lower_left_x, lower_left_y, top_right_x, top_right_y;
     int first_x, first_y, second_x, second_y;
     int center_x, center_y, radius;
@@ -17,8 +17,9 @@ struct square_area { // in this task, I use "line" instead of "line segment", be
 };
 
 // to be 4 decimal digit precise, doubles are needed => 8B per number
-// the limit 100MB can be probably reached, because storing 1000 circles that intersect with each other 
-// makes 999000 intersections which is 1998000 values so just they spend 16MB => still fine
+// the limit 100MB can't be probably reached, because storing 1000 circles that intersect with each other 
+// makes 999000 intersections which is 1998000 values so they spend just 16MB => still fine
+// the code can be easily parallelised, but that's probably out of scope of this task
 int main() {
     std::size_t element_count;
     ifstream example_input("example_input.txt");
