@@ -7,7 +7,7 @@ using namespace std;
 
 void OuelletHull::CalcConvexHull() {
 	// Find the quadrant limits (maximum x and y)
-	point* pPt = _pPoints;
+	point* pPt = points;
 
 	point q1p1 = *pPt;
 	point q1p2 = *pPt;
@@ -20,7 +20,7 @@ void OuelletHull::CalcConvexHull() {
 
 	pPt++;
 
-	for (int n = this->_pPoints.size() - 1; n > 0; --n) { // -1 because 0 bound.
+	for (int n = this->points.size() - 1; n > 0; --n) { // -1 because 0 bound.
 		point& pt = *pPt;
 
 		// Right
@@ -83,8 +83,7 @@ void OuelletHull::CalcConvexHull() {
 	// Q1 Init
 	// *************************
 
-	quadrants[0].hullCapacity = _quadrantHullPointArrayInitialCapacity;
-	quadrants[0].pHullPoints = new point[quadrants[0].hullCapacity];
+	quadrants[0].hullPoints = vector<pair<double, double>>(_quadrantHullPointArrayInitialCapacity);
 
 	quadrants[0].pHullPoints[0] = q1p1;
 	if (compare_points(q1p1, q1p2))
@@ -98,8 +97,7 @@ void OuelletHull::CalcConvexHull() {
 	// Q2 Init
 	// *************************
 
-	quadrants[1].hullCapacity = _quadrantHullPointArrayInitialCapacity;
-	quadrants[1].pHullPoints = new point[quadrants[1].hullCapacity];
+	quadrants[0].hullPoints = vector<pair<double, double>>(_quadrantHullPointArrayInitialCapacity);
 
 	quadrants[1].pHullPoints[0] = q2p1;
 	if (compare_points(q2p1, q2p2))
@@ -113,8 +111,7 @@ void OuelletHull::CalcConvexHull() {
 	// Q3 Init
 	// *************************
 
-	quadrants[2].hullCapacity = _quadrantHullPointArrayInitialCapacity;
-	quadrants[2].pHullPoints = new point[quadrants[2].hullCapacity];
+	quadrants[0].hullPoints = vector<pair<double, double>>(_quadrantHullPointArrayInitialCapacity);
 
 	quadrants[2].pHullPoints[0] = q3p1;
 	if (compare_points(q3p1, q3p2))
@@ -128,8 +125,7 @@ void OuelletHull::CalcConvexHull() {
 	// Q4 Init
 	// *************************
 
-	quadrants[3].hullCapacity = _quadrantHullPointArrayInitialCapacity;
-	quadrants[3].pHullPoints = new point[quadrants[3].hullCapacity];
+	quadrants[0].hullPoints = vector<pair<double, double>>(_quadrantHullPointArrayInitialCapacity);
 
 	quadrants[3].pHullPoints[0] = q4p1;
 	if (compare_points(q4p1, q4p2))
@@ -150,9 +146,9 @@ void OuelletHull::CalcConvexHull() {
 
 	// Currently hardcoded, could be calculated or pass as argument by user, dynamic, grow as needed
 
-	pPt = _pPoints;
+	pPt = points;
 
-	for (int n = this->_pPoints.size() - 1; n >= 0; --n) { // -1 because 0 bound.
+	for (int n = this->points.size() - 1; n >= 0; --n) { // -1 because 0 bound.
 		point& pt = *pPt;
 
 		// ****************************************************************
@@ -213,7 +209,7 @@ void OuelletHull::CalcConvexHull() {
 			}
 
 			if (indexLow + 1 == indexHi) {
-				InsertPoint(quadrants[0].pHullPoints, indexLow + 1, pt, quadrants[0].hullCount, quadrants[0].hullCapacity);
+				InsertPoint(quadrants[0].pHullPoints, indexLow + 1, pt, quadrants[0].hullCount, _quadrantHullPointArrayInitialCapacity);
 				goto nextPoint;
 			}
 			else if (indexLow + 2 == indexHi) { // Don't need to insert, just replace at index + 1
@@ -287,7 +283,7 @@ void OuelletHull::CalcConvexHull() {
 			}
 
 			if (indexLow + 1 == indexHi) {
-				InsertPoint(quadrants[1].pHullPoints, indexLow + 1, pt, quadrants[1].hullCount, quadrants[1].hullCapacity);
+				InsertPoint(quadrants[1].pHullPoints, indexLow + 1, pt, quadrants[1].hullCount, _quadrantHullPointArrayInitialCapacity);
 				goto nextPoint;
 			}
 			else if (indexLow + 2 == indexHi) { // Don't need to insert, just replace at index + 1
@@ -361,7 +357,7 @@ void OuelletHull::CalcConvexHull() {
 			}
 
 			if (indexLow + 1 == indexHi) {
-				InsertPoint(quadrants[2].pHullPoints, indexLow + 1, pt, quadrants[2].hullCount, quadrants[2].hullCapacity);
+				InsertPoint(quadrants[2].pHullPoints, indexLow + 1, pt, quadrants[2].hullCount, _quadrantHullPointArrayInitialCapacity);
 				goto nextPoint;
 			}
 			else if (indexLow + 2 == indexHi) { // Don't need to insert, just replace at index + 1
@@ -435,7 +431,7 @@ void OuelletHull::CalcConvexHull() {
 			}
 
 			if (indexLow + 1 == indexHi) {
-				InsertPoint(quadrants[3].pHullPoints, indexLow + 1, pt, quadrants[3].hullCount, quadrants[3].hullCapacity);
+				InsertPoint(quadrants[3].pHullPoints, indexLow + 1, pt, quadrants[3].hullCount, _quadrantHullPointArrayInitialCapacity);
 				goto nextPoint;
 			}
 			else if (indexLow + 2 == indexHi) { // Don't need to insert, just replace at index + 1
@@ -485,20 +481,13 @@ void OuelletHull::RemoveRange(point* pPoint, int indexStart, int indexEnd, int &
 }
 
 OuelletHull::OuelletHull(set<pair<double, double>>& points) {
-	_pPoints = points;
+	this->points = points;
 
 	CalcConvexHull();
 }
 
-OuelletHull::~OuelletHull() {
-	delete quadrants[0].pHullPoints;
-	delete quadrants[1].pHullPoints;
-	delete quadrants[2].pHullPoints;
-	delete quadrants[3].pHullPoints;
-}
-
 vector<pair<double, double>> OuelletHull::GetResultAsVector() {
-	if (!this->_pPoints.size())
+	if (!this->points.size())
 		return vector<pair<double, double>>();
 
 	unsigned int indexQ1Start;
@@ -591,16 +580,16 @@ vector<pair<double, double>> OuelletHull::GetResultAsVector() {
 	int resIndex = 0;
 
 	for (int n = indexQ1Start; n <= indexQ1End; ++n)
-		results[resIndex++] = quadrants[0].pHullPoints[n];
+		results[resIndex++] = quadrants[0].hullPoints[n];
 
 	for (int n = indexQ2Start; n <= indexQ2End; ++n)
-		results[resIndex++] = quadrants[1].pHullPoints[n];
+		results[resIndex++] = quadrants[1].hullPoints[n];
 
 	for (int n = indexQ3Start; n <= indexQ3End; ++n)
-		results[resIndex++] = quadrants[2].pHullPoints[n];
+		results[resIndex++] = quadrants[2].hullPoints[n];
 
 	for (int n = indexQ4Start; n <= indexQ4End; ++n)
-		results[resIndex++] = quadrants[3].pHullPoints[n];
+		results[resIndex++] = quadrants[3].hullPoints[n];
 
 	return results;
 }

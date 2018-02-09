@@ -5,15 +5,8 @@
 
 using namespace std;
 
-typedef struct {
-  double x; 
-  double y;
-} point;
-
 struct quadrant {
-	point* pHullPoints;
-	int hullCapacity;
-	int hullCount = 0;
+	vector<pair<double, double>> hullPoints;
 };
 
 #define area(a, b, c) (((b).x-(a).x)*((c).y-(a).y) - ((b).y-(a).y)*((c).x-(a).x))
@@ -31,7 +24,7 @@ class OuelletHull {
 	static const int _quadrantHullPointArrayInitialCapacity = 1000;
 	static const int _quadrantHullPointArrayGrowSize = 1000;
 
-	set<pair<double, double>> _pPoints;
+	set<pair<double, double>> points;
     array<quadrant, 4> quadrants;
 
 	void CalcConvexHull();
