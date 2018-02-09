@@ -147,9 +147,10 @@ int main() {
         }
     }
     cout << collisions.size() << endl << fixed << setprecision(4);
-    for (auto& collision : collisions)
+    vector<pair<double, double>> collisions_vector(collisions.begin(), collisions.end());
+    for (auto& collision : collisions_vector)
         cout << collision.first << " " << collision.second << endl;
-    OuelletHull convexHull(collisions);
+    OuelletHull convexHull(move(collisions_vector));
     vector<pair<double, double>> convex_hull = convexHull.GetResultAsVector();
     cin.sync();
     cin.ignore();
