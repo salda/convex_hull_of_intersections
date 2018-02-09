@@ -1,11 +1,19 @@
 #include <cmath>
+#include <array>
+
+using namespace std;
 
 typedef struct {
   double x; 
   double y;
 } point;
 
-/* Left-turn, right-turn and collinear predicates */
+struct quadrant {
+	point* pHullPoints;
+	int hullCapacity;
+	int hullCount = 0;
+};
+
 #define area(a, b, c) (((b).x-(a).x)*((c).y-(a).y) - ((b).y-(a).y)*((c).x-(a).x))
 #define right_turn(a, b, c) (area(a, b, c) < 0)
 #define left_turn(a, b, c) (area(a, b, c) > 0)
@@ -23,27 +31,7 @@ class OuelletHull {
 
 	point* _pPoints;
 	int _countOfPoint;
-	bool _shouldCloseTheGraph;
-
-	point* q1pHullPoints;
-	point* q1pHullLast;
-	int q1hullCapacity;
-	int q1hullCount = 0;
-
-	point* q2pHullPoints;
-	point* q2pHullLast;
-	int q2hullCapacity;
-	int q2hullCount = 0;
-
-	point* q3pHullPoints;
-	point* q3pHullLast;
-	int q3hullCapacity;
-	int q3hullCount = 0;
-
-	point* q4pHullPoints;
-	point* q4pHullLast;
-	int q4hullCapacity;
-	int q4hullCount = 0;
+    array<quadrant, 4> quadrants;
 
 	void CalcConvexHull();
 
@@ -51,9 +39,9 @@ class OuelletHull {
 	inline static void RemoveRange(point* pPoint, int indexStart, int indexEnd, int &count);
 
 public:
-	OuelletHull(point* points, int countOfPoint, bool shouldCloseTheGraph = true);
+	OuelletHull(point* points, int countOfPoint);
 	~OuelletHull();
 	point* GetResultAsArray(int& count);
 };
 
-point* ouelletHull(point* pArrayOfPoint, int count, bool closeThePath, int& resultCount);
+point* ouelletHull(point* pArrayOfPoint, int count, int& resultCount);
