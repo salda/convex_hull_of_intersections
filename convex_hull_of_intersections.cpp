@@ -156,13 +156,13 @@ int main() {
     cout << convex_hull.size() << endl;
     for (auto& element : convex_hull)
         cout << element.first << " " << element.second << endl;
-    double convex_hull_area = 0.0;
+    double convex_hull_area_twice = 0.0;
     size_t j = convex_hull.size() - 1;
     for (size_t i = 0; i != convex_hull.size(); ++i) {
-        convex_hull_area += (convex_hull[j].first + convex_hull[i].first) * (convex_hull[j].second - convex_hull[i].second);
+        convex_hull_area_twice += (convex_hull[j].first + convex_hull[i].first) * (convex_hull[j].second - convex_hull[i].second);
         j = i;
     }
-    cout << abs(convex_hull_area / 2);
+    cout << abs(convex_hull_area_twice / 2);
 
     cin.sync();
     cin.ignore();
