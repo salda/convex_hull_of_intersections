@@ -1,122 +1,87 @@
 #include "OuelletHull.h"
-#include <string>
-#include <vector>
 
 using namespace std;
+using std::size_t;
 
 void OuelletHull::CalcConvexHull() {
-	// Find the quadrant limits (maximum x and y)
 	pair<double, double>* pPt = points.data();
 
-	pair<double, double> q1p1 = *pPt;
-	pair<double, double> q1p2 = *pPt;
-	pair<double, double> q2p1 = *pPt;
-	pair<double, double> q2p2 = *pPt;
-	pair<double, double> q3p1 = *pPt;
-	pair<double, double> q3p2 = *pPt;
-	pair<double, double> q4p1 = *pPt;
-	pair<double, double> q4p2 = *pPt;
-
+	array<pair<pair<double, double>, pair<double, double>>, 4> initialization_maximums_for_quadrants;
+	for (auto& initialization_pair : initialization_maximums_for_quadrants) {
+		initialization_pair.first = points[0];
+		initialization_pair.second = points[0];
+	}
+	
 	pPt++;
 
 	for (int n = this->points.size() - 1; n > 0; --n) { // -1 because 0 bound.
 		pair<double, double>& pt = *pPt;
 
 		// Right
-		if (pt.first >= q1p1.first) {
-			if(pt.first == q1p1.first) {
-				if (pt.second > q1p1.second)
-					q1p1 = pt;
-				else if (pt.second < q4p2.second)
-					q4p2 = pt;
+		if (pt.first >= initialization_maximums_for_quadrants[0].first.first) {
+			if (pt.first == initialization_maximums_for_quadrants[0].first.first) {
+				if (pt.second > initialization_maximums_for_quadrants[0].first.second)
+					initialization_maximums_for_quadrants[0].first = pt;
+				else if (pt.second < initialization_maximums_for_quadrants[3].second.second)
+					initialization_maximums_for_quadrants[3].second = pt;
 			}
 			else {
-				q1p1 = pt;
-				q4p2 = pt;
+				initialization_maximums_for_quadrants[0].first = pt;
+				initialization_maximums_for_quadrants[3].second = pt;
 			}
 		}
 
 		// Left
-		if (pt.first <= q2p2.first) {
-			if (pt.first == q2p2.first) {
-				if (pt.second > q2p2.second)
-					q2p2.second = pt.second;
-				else if (pt.second < q3p1.second)
-					q3p1 = pt;
+		if (pt.first <= initialization_maximums_for_quadrants[1].second.first) {
+			if (pt.first == initialization_maximums_for_quadrants[1].second.first) {
+				if (pt.second > initialization_maximums_for_quadrants[1].second.second)
+					initialization_maximums_for_quadrants[1].second.second = pt.second;
+				else if (pt.second < initialization_maximums_for_quadrants[2].first.second)
+					initialization_maximums_for_quadrants[2].first = pt;
 			}
 			else {
-				q2p2 = pt;
-				q3p1 = pt;
+				initialization_maximums_for_quadrants[1].second = pt;
+				initialization_maximums_for_quadrants[2].first = pt;
 			}
 		}
 
 		// Top
-		if (pt.second >= q1p2.second) {
-			if (pt.second == q1p2.second) {
-				if (pt.first < q2p1.first)
-					q2p1 = pt;
-				else if (pt.first > q1p2.first)
-					q1p2 = pt;
+		if (pt.second >= initialization_maximums_for_quadrants[0].second.second) {
+			if (pt.second == initialization_maximums_for_quadrants[0].second.second) {
+				if (pt.first < initialization_maximums_for_quadrants[1].first.first)
+					initialization_maximums_for_quadrants[1].first = pt;
+				else if (pt.first > initialization_maximums_for_quadrants[0].second.first)
+					initialization_maximums_for_quadrants[0].second = pt;
 			}
 			else {
-				q1p2 = pt;
-				q2p1 = pt;
+				initialization_maximums_for_quadrants[0].second = pt;
+				initialization_maximums_for_quadrants[1].first = pt;
 			}
 		}
 
 		// Bottom
-		if (pt.second <= q3p2.second) {
-			if (pt.second == q3p2.second) {
-				if (pt.first < q3p2.first)
-					q3p2 = pt;
-				else if (pt.first > q4p1.first)
-					q4p1 = pt;
+		if (pt.second <= initialization_maximums_for_quadrants[2].second.second) {
+			if (pt.second == initialization_maximums_for_quadrants[2].second.second) {
+				if (pt.first < initialization_maximums_for_quadrants[2].second.first)
+					initialization_maximums_for_quadrants[2].second = pt;
+				else if (pt.first > initialization_maximums_for_quadrants[3].first.first)
+					initialization_maximums_for_quadrants[3].first = pt;
 			}
 			else {
-				q3p2 = pt;
-				q4p1 = pt;
+				initialization_maximums_for_quadrants[2].second = pt;
+				initialization_maximums_for_quadrants[3].first = pt;
 			}
 		}
 
 		pPt++;
 	}
 
-	pair<double, double> q1rootPt { q1p2.first, q1p1.second };
-	pair<double, double> q2rootPt { q2p1.first, q2p2.second };
-	pair<double, double> q3rootPt { q3p2.first, q3p1.second };
-	pair<double, double> q4rootPt { q4p1.first, q4p2.second };
-
-	// *************************
-	// Q1 Init
-	// *************************
-	quadrants[0] = vector<pair<double, double>>();
-	quadrants[0].push_back(q1p1);
-	if (!compare_points(q1p1, q1p2))
-		quadrants[0].push_back(q1p2);
-
-	// *************************
-	// Q2 Init
-	// *************************
-	quadrants[1] = vector<pair<double, double>>();
-	quadrants[1].push_back(q2p1);
-	if (!compare_points(q2p1, q2p2))
-		quadrants[1].push_back(q2p2);
-
-	// *************************
-	// Q3 Init
-	// *************************
-	quadrants[2] = vector<pair<double, double>>();
-	quadrants[2].push_back(q3p1);
-	if (!compare_points(q3p1, q3p2))
-		quadrants[2].push_back(q3p2);
-
-	// *************************
-	// Q4 Init
-	// *************************
-	quadrants[3] = vector<pair<double, double>>();
-	quadrants[3].push_back(q4p1);
-	if (!compare_points(q4p1, q4p2))
-		quadrants[3].push_back(q4p2);
+	// Init Quadrants
+	for (size_t i = 0; i != 4; ++i) {
+		quadrants[i].push_back(initialization_maximums_for_quadrants[i].first);
+		if (!compare_points(initialization_maximums_for_quadrants[i].first, initialization_maximums_for_quadrants[i].second))
+			quadrants[i].push_back(initialization_maximums_for_quadrants[i].second);
+	}
 	
 	// *************************
 	// Start Calc	
@@ -137,7 +102,7 @@ void OuelletHull::CalcConvexHull() {
 		// ****************************************************************
 
 		// Begin get insertion point
-		if (pt.first > q1rootPt.first && pt.second > q1rootPt.second) { // Is point is in Q1
+		if (pt.first > initialization_maximums_for_quadrants[0].second.first && pt.second > initialization_maximums_for_quadrants[0].first.second) { // Is point is in Q1
 			indexLow = 0;
 			indexHi = quadrants[0].size();
 
@@ -211,7 +176,7 @@ void OuelletHull::CalcConvexHull() {
 		// ****************************************************************
 
 		// Begin get insertion point
-		if (pt.first < q2rootPt.first && pt.second > q2rootPt.second) { // Is point is in q2
+		if (pt.first < initialization_maximums_for_quadrants[1].first.first && pt.second > initialization_maximums_for_quadrants[1].second.second) { // Is point is in q2
 			indexLow = 0;
 			indexHi = quadrants[1].size();
 
@@ -285,7 +250,7 @@ void OuelletHull::CalcConvexHull() {
 		// ****************************************************************
 
 		// Begin get insertion point
-		if (pt.first < q3rootPt.first && pt.second < q3rootPt.second) { // Is point is in q3
+		if (pt.first < initialization_maximums_for_quadrants[2].second.first && pt.second < initialization_maximums_for_quadrants[2].first.second) { // Is point is in q3
 			indexLow = 0;
 			indexHi = quadrants[2].size();
 
@@ -359,7 +324,7 @@ void OuelletHull::CalcConvexHull() {
 		// ****************************************************************
 
 		// Begin get insertion point
-		if (pt.first > q4rootPt.first && pt.second < q4rootPt.second) { // Is point is in q4
+		if (pt.first > initialization_maximums_for_quadrants[3].first.first && pt.second < initialization_maximums_for_quadrants[3].second.second) { // Is point is in q4
 			indexLow = 0;
 			indexHi = quadrants[3].size();
 
@@ -443,78 +408,66 @@ vector<pair<double, double>> OuelletHull::GetResultAsVector() {
 	if (this->points.empty())
 		return {};
 
-	unsigned int indexQ1Start;
-	unsigned int indexQ2Start;
-	int indexQ3Start;
-	int indexQ4Start;
-	int indexQ1End;
-	int indexQ2End;
-	int indexQ3End;
-	int indexQ4End;
+	array<pair<unsigned int, int>, 4> quadrant_start_and_end_indexes;
 
-	indexQ1Start = 0;
-	indexQ1End = quadrants[0].size() - 1;
-	pair<double, double> pointLast = quadrants[0][indexQ1End];
+	quadrant_start_and_end_indexes[0].first = 0;
+	quadrant_start_and_end_indexes[0].second = quadrants[0].size() - 1;
+	pair<double, double> pointLast = quadrants[0][quadrant_start_and_end_indexes[0].second];
 
 	if (quadrants[1].size() == 1) {
-		indexQ2End = 0;
+		quadrant_start_and_end_indexes[1].second = 0;
 		if (compare_points(quadrants[1].front(), pointLast))
-			indexQ2Start = 1;
+			quadrant_start_and_end_indexes[1].first = 1;
 		else {
-			indexQ2Start = 0;
+			quadrant_start_and_end_indexes[1].first = 0;
 			pointLast = quadrants[1].front();
 		}
 	}
 	else {
-		indexQ2Start = compare_points(quadrants[1].front(), pointLast) ? 1 : 0;
-		indexQ2End = quadrants[1].size() - 1;
-		pointLast = quadrants[1][indexQ2End];
+		quadrant_start_and_end_indexes[1].first = compare_points(quadrants[1].front(), pointLast) ? 1 : 0;
+		quadrant_start_and_end_indexes[1].second = quadrants[1].size() - 1;
+		pointLast = quadrants[1][quadrant_start_and_end_indexes[1].second];
 	}
 
 	if (quadrants[2].size() == 1) {
-		indexQ3End = 0;
+		quadrant_start_and_end_indexes[2].second = 0;
 		if (compare_points(quadrants[2].front(), pointLast))
-			indexQ3Start = 1;
+			quadrant_start_and_end_indexes[2].first = 1;
 		else {
-			indexQ3Start = 0;
+			quadrant_start_and_end_indexes[2].first = 0;
 			pointLast = quadrants[2].front();
 		}
 	}
 	else {
-		indexQ3Start = compare_points(quadrants[2].front(), pointLast) ? 1 : 0;
-		indexQ3End = quadrants[2].size() - 1;
-		pointLast = quadrants[2][indexQ3End];
+		quadrant_start_and_end_indexes[2].first = compare_points(quadrants[2].front(), pointLast) ? 1 : 0;
+		quadrant_start_and_end_indexes[2].second = quadrants[2].size() - 1;
+		pointLast = quadrants[2][quadrant_start_and_end_indexes[2].second];
 	}
 
 	if (quadrants[3].size() == 1) {
-		indexQ4End = 0;
+		quadrant_start_and_end_indexes[3].second = 0;
 		if (compare_points(quadrants[3].front(), pointLast))
-			indexQ4Start = 1;
+			quadrant_start_and_end_indexes[3].first = 1;
 		else {
-			indexQ4Start = 0;
+			quadrant_start_and_end_indexes[3].first = 0;
 			pointLast = quadrants[3].front();
 		}
 	}
 	else {
-		indexQ4Start = compare_points(quadrants[3].front(), pointLast) ? 1 : 0;
-		indexQ4End = quadrants[3].size() - 1;
-		pointLast = quadrants[3][indexQ4End];
+		quadrant_start_and_end_indexes[3].first = compare_points(quadrants[3].front(), pointLast) ? 1 : 0;
+		quadrant_start_and_end_indexes[3].second = quadrants[3].size() - 1;
+		pointLast = quadrants[3][quadrant_start_and_end_indexes[3].second];
 	}
 
-	if (compare_points(quadrants[0][indexQ1Start], pointLast))
-		++indexQ1Start;
+	if (compare_points(quadrants[0][quadrant_start_and_end_indexes[0].first], pointLast))
+		++quadrant_start_and_end_indexes[0].first;
 
-	if (indexQ1End - indexQ1Start + indexQ2End - indexQ2Start + indexQ3End - indexQ3Start + indexQ4End - indexQ4Start + 4 <= 1)
+	if (quadrant_start_and_end_indexes[0].second - quadrant_start_and_end_indexes[0].first + quadrant_start_and_end_indexes[1].second - quadrant_start_and_end_indexes[1].first + quadrant_start_and_end_indexes[2].second - quadrant_start_and_end_indexes[2].first + quadrant_start_and_end_indexes[3].second - quadrant_start_and_end_indexes[3].first + 4 <= 1)
 		return { pointLast };
 
 	vector<pair<double, double>> results;
-	for (int n = indexQ1Start; n <= indexQ1End; ++n)
-		results.push_back(quadrants[0][n]);
-	for (int n = indexQ2Start; n <= indexQ2End; ++n)
-		results.push_back(quadrants[1][n]);
-	for (int n = indexQ3Start; n <= indexQ3End; ++n)
-		results.push_back(quadrants[2][n]);
-	for (int n = indexQ4Start; n <= indexQ4End; ++n)
-		results.push_back(quadrants[3][n]);
+	for (int i = 0; i != 4; ++i)
+		for (int n = quadrant_start_and_end_indexes[i].first; n <= quadrant_start_and_end_indexes[i].second; ++n)
+			results.push_back(quadrants[i][n]);
 	return results;
 }
