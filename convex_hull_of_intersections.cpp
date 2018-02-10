@@ -8,6 +8,7 @@
 #include "OuelletHull.h"
 
 using namespace std;
+using std::size_t;
 
 struct square_area { // in this task, I use "line" instead of "line segment", because it's shorter and it's obvious it's a segment
     int lower_left_x, lower_left_y, top_right_x, top_right_y;
@@ -155,6 +156,14 @@ int main() {
     cout << convex_hull.size() << endl;
     for (auto& element : convex_hull)
         cout << element.first << " " << element.second << endl;
+    double convex_hull_area = 0.0;
+    size_t j = convex_hull.size() - 1;
+    for (size_t i = 0; i != convex_hull.size(); ++i) {
+        convex_hull_area += (convex_hull[j].first + convex_hull[i].first) * (convex_hull[j].second - convex_hull[i].second);
+        j = i;
+    }
+    cout << abs(convex_hull_area / 2);
+
     cin.sync();
     cin.ignore();
 }
