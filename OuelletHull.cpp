@@ -84,10 +84,6 @@ void OuelletHull::CalcConvexHull() {
 			quadrants[i].push_back(initialization_maximums_for_quadrants[i].second);
 	}
 	
-	// *************************
-	// Start Calc	
-	// *************************
-
 	// Calc per quadrant
 	int index;
 	int indexLow;
@@ -95,39 +91,39 @@ void OuelletHull::CalcConvexHull() {
 
 	pPt = points.data();
 
-	for (int n = this->points.size() - 1, i; n >= 0; --n, ++pPt) { // TODO make simpler
+	for (int n = this->points.size() - 1, quadrant; n >= 0; --n, ++pPt) { // TODO make simpler
 		pair<double, double>& pt = *pPt;
 
 		if (pt.first > initialization_maximums_for_quadrants[0].second.first && pt.second > initialization_maximums_for_quadrants[0].first.second)
-			i = 0;
+			quadrant = 0;
 		else if (pt.first < initialization_maximums_for_quadrants[1].first.first && pt.second > initialization_maximums_for_quadrants[1].second.second)
-			i = 1;
+			quadrant = 1;
 		else if (pt.first < initialization_maximums_for_quadrants[2].second.first && pt.second < initialization_maximums_for_quadrants[2].first.second)
-			i = 2;
+			quadrant = 2;
 		else if (pt.first > initialization_maximums_for_quadrants[3].first.first && pt.second < initialization_maximums_for_quadrants[3].second.second)
-			i = 3;
+			quadrant = 3;
 		else
 			continue;
 
 		indexLow = 0;
-		indexHi = quadrants[i].size();
+		indexHi = quadrants[quadrant].size();
 
 		bool breaker = false;
 		while (indexLow < indexHi - 1) {
 			index = ((indexHi - indexLow) >> 1) + indexLow;
 
-			if ((i == 0 && pt.first <= quadrants[0][index].first && pt.second <= quadrants[0][index].second)
-			 || (i == 1 && pt.first >= quadrants[1][index].first && pt.second <= quadrants[1][index].second)
-			 || (i == 2 && pt.first >= quadrants[2][index].first && pt.second >= quadrants[2][index].second)
-			 || (i == 3 && pt.first <= quadrants[3][index].first && pt.second >= quadrants[3][index].second))
+			if ((quadrant == 0 && pt.first <= quadrants[0][index].first && pt.second <= quadrants[0][index].second)
+			 || (quadrant == 1 && pt.first >= quadrants[1][index].first && pt.second <= quadrants[1][index].second)
+			 || (quadrant == 2 && pt.first >= quadrants[2][index].first && pt.second >= quadrants[2][index].second)
+			 || (quadrant == 3 && pt.first <= quadrants[3][index].first && pt.second >= quadrants[3][index].second))
 				breaker = true; // No calc needed
 
-			if ((i < 2 && pt.first > quadrants[i][index].first) || pt.first < quadrants[i][index].first) {
+			if ((quadrant < 2 && pt.first > quadrants[quadrant][index].first) || pt.first < quadrants[quadrant][index].first) {
 				indexHi = index;
 				continue;
 			}
 
-			if ((i < 2 && pt.first < quadrants[i][index].first) || pt.first > quadrants[i][index].first) {
+			if ((quadrant < 2 && pt.first < quadrants[quadrant][index].first) || pt.first > quadrants[quadrant][index].first) {
 				indexLow = index;
 				continue;
 			}
@@ -142,7 +138,7 @@ void OuelletHull::CalcConvexHull() {
 		// Here indexLow should contains the index where the point should be inserted 
 		// if calculation does not invalidate it.
 
-		if (!right_turn(quadrants[i][indexLow], quadrants[i][indexHi], pt))
+		if (!right_turn(quadrants[quadrant][indexLow], quadrants[quadrant][indexHi], pt))
 			continue;
 
 		// HERE: We should insert a new candidate as a Hull Point (until a new one could invalidate this one, if any).
@@ -153,25 +149,25 @@ void OuelletHull::CalcConvexHull() {
 
 		// Find lower bound (remove point invalidate by the new one that come before)
 		while (indexLow > 0) {
-			if (right_turn(quadrants[i][indexLow - 1], pt, quadrants[i][indexLow]))
+			if (right_turn(quadrants[quadrant][indexLow - 1], pt, quadrants[quadrant][indexLow]))
 				break; // We found the lower index limit of points to keep. The new point should be added right after indexLow.
 			indexLow--;
 		}
 
 		// Find upper bound (remove point invalidate by the new one that come after)
-		int maxIndexHi = quadrants[i].size() - 1;
+		int maxIndexHi = quadrants[quadrant].size() - 1;
 		while (indexHi < maxIndexHi) {
-			if (right_turn(pt, quadrants[i][indexHi + 1], quadrants[i][indexHi]))
+			if (right_turn(pt, quadrants[quadrant][indexHi + 1], quadrants[quadrant][indexHi]))
 				break; // We found the higher index limit of points to keep. The new point should be added right before indexHi.
 			indexHi++;
 		}
 
 		if (indexLow + 1 == indexHi)
-			quadrants[i].insert(quadrants[i].begin() + indexHi, pt);
+			quadrants[quadrant].insert(quadrants[quadrant].begin() + indexHi, pt);
 		else {
-			quadrants[i][indexLow + 1] = *pPt;
+			quadrants[quadrant][indexLow + 1] = pt;
 			if (indexLow + 2 != indexHi)
-				quadrants[i].erase(quadrants[i].begin() + indexLow + 2, quadrants[i].begin() + indexHi -1);
+				quadrants[quadrant].erase(quadrants[quadrant].begin() + indexLow + 2, quadrants[quadrant].begin() + indexHi -1);
 		}
 	}
 }
