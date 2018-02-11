@@ -198,12 +198,15 @@ vector<pair<double, double>> OuelletHull::GetResultAsVector() {
 	if (quadrants[0][quadrant_start_and_end_indexes[0].first] == pointLast)
 		++quadrant_start_and_end_indexes[0].first;
 
-	if (quadrant_start_and_end_indexes[0].second - quadrant_start_and_end_indexes[0].first + quadrant_start_and_end_indexes[1].second - quadrant_start_and_end_indexes[1].first + quadrant_start_and_end_indexes[2].second - quadrant_start_and_end_indexes[2].first + quadrant_start_and_end_indexes[3].second - quadrant_start_and_end_indexes[3].first + 4 <= 1)
+	if (quadrant_start_and_end_indexes[0].second - quadrant_start_and_end_indexes[0].first
+	  + quadrant_start_and_end_indexes[1].second - quadrant_start_and_end_indexes[1].first
+	  + quadrant_start_and_end_indexes[2].second - quadrant_start_and_end_indexes[2].first
+	  + quadrant_start_and_end_indexes[3].second - quadrant_start_and_end_indexes[3].first + 4 <= 1)
 		return { pointLast };
 
 	vector<pair<double, double>> results;
 	for (int quadrant = 0; quadrant != 4; ++quadrant)
-		for (int n = quadrant_start_and_end_indexes[quadrant].first; n <= quadrant_start_and_end_indexes[quadrant].second; ++n)
-			results.push_back(quadrants[quadrant][n]);
+		for (int quadrant_element = quadrant_start_and_end_indexes[quadrant].first; quadrant_element <= quadrant_start_and_end_indexes[quadrant].second; ++quadrant_element)
+			results.push_back(quadrants[quadrant][quadrant_element]);
 	return results;
 }
