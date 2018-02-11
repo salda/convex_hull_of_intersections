@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iomanip>
 #include <set>
-#include "OuelletHull.h"
+#include "Ouellet_hull.h"
 
 using namespace std;
 using std::size_t;
@@ -19,8 +19,9 @@ struct square_area { // in this task, I use "line" instead of "line segment", be
 };
 
 // to be 4 decimal digit precise, doubles are needed => 8B per number
-// the limit 100MB can't be probably reached, because storing 1000 circles that intersect with each other 
-// makes 999000 intersections which is 1998000 values so they spend just 16MB => still fine
+// the limit 100MB can't be probably reached, because storing 1000 circles that intersect with each other makes
+// 999000 intersections which is 1998000 values so they spend just 16MB which should take max 32MB in vector => still fine
+// the 3 seconds limit is quite vague, but I will try to measure the worst case on my PC
 // the code can be easily parallelised, but that's probably out of scope of this task
 int main() {
     std::size_t element_count;
@@ -151,8 +152,8 @@ int main() {
     vector<pair<double, double>> collisions_vector(collisions.begin(), collisions.end());
     for (auto& collision : collisions_vector)
         cout << collision.first << " " << collision.second << endl;
-    OuelletHull convexHull(move(collisions_vector));
-    vector<pair<double, double>> convex_hull = convexHull.GetResultAsVector();
+    Ouellet_hull convex_hull_class(move(collisions_vector));
+    vector<pair<double, double>> convex_hull = convex_hull_class.get_result();
     cout << convex_hull.size() << endl;
     for (auto& element : convex_hull)
         cout << element.first << " " << element.second << endl;
