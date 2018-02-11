@@ -154,19 +154,15 @@ void OuelletHull::CalcConvexHull() {
 				indexHi++;
 			}
 
-			if (indexLow + 1 == indexHi) {
+			if (indexLow + 1 == indexHi)
 				quadrants[0].insert(quadrants[0].begin() + indexHi, pt);
-				goto nextPoint;
-			}
-			else if (indexLow + 2 == indexHi) {
-				quadrants[0][indexLow + 1] = *pPt;
-				goto nextPoint;
-			}
 			else {
 				quadrants[0][indexLow + 1] = *pPt;
-				quadrants[0].erase(quadrants[0].begin() + indexLow + 2, quadrants[0].begin() + indexHi -1);
-				goto nextPoint;
+				if (indexLow + 2 != indexHi)
+					quadrants[0].erase(quadrants[0].begin() + indexLow + 2, quadrants[0].begin() + indexHi -1);
 			}
+			++pPt;
+			continue;
 		}
 
 	currentPointNotPartOfq1Hull:
@@ -228,19 +224,15 @@ void OuelletHull::CalcConvexHull() {
 				indexHi++;
 			}
 
-			if (indexLow + 1 == indexHi) {
+			if (indexLow + 1 == indexHi)
 				quadrants[1].insert(quadrants[1].begin() + indexHi, pt);
-				goto nextPoint;
-			}
-			else if (indexLow + 2 == indexHi) {
-				quadrants[1][indexLow + 1] = *pPt;
-				goto nextPoint;
-			}
 			else {
 				quadrants[1][indexLow + 1] = *pPt;
-				quadrants[1].erase(quadrants[1].begin() + indexLow + 2, quadrants[1].begin() + indexHi -1);
-				goto nextPoint;
+				if (indexLow + 2 != indexHi)
+					quadrants[1].erase(quadrants[1].begin() + indexLow + 2, quadrants[1].begin() + indexHi -1);
 			}
+			++pPt;
+			continue;
 		}
 
 	currentPointNotPartOfq2Hull:
@@ -302,19 +294,15 @@ void OuelletHull::CalcConvexHull() {
 				indexHi++;
 			}
 
-			if (indexLow + 1 == indexHi) {
+			if (indexLow + 1 == indexHi)
 				quadrants[2].insert(quadrants[2].begin() + indexHi, pt);
-				goto nextPoint;
-			}
-			else if (indexLow + 2 == indexHi) {
-				quadrants[2][indexLow + 1] = *pPt;
-				goto nextPoint;
-			}
 			else {
 				quadrants[2][indexLow + 1] = *pPt;
-				quadrants[2].erase(quadrants[2].begin() + indexLow + 2, quadrants[2].begin() + indexHi -1);
-				goto nextPoint;
+				if (indexLow + 2 != indexHi)
+					quadrants[2].erase(quadrants[2].begin() + indexLow + 2, quadrants[2].begin() + indexHi -1);
 			}
+			++pPt;
+			continue;
 		}
 
 	currentPointNotPartOfq3Hull:
@@ -376,25 +364,18 @@ void OuelletHull::CalcConvexHull() {
 				indexHi++;
 			}
 
-			if (indexLow + 1 == indexHi) {
+			if (indexLow + 1 == indexHi)
 				quadrants[3].insert(quadrants[3].begin() + indexHi, pt);
-				goto nextPoint;
-			}
-			else if (indexLow + 2 == indexHi) {
-				quadrants[3][indexLow + 1] = *pPt;
-				goto nextPoint;
-			}
 			else {
 				quadrants[3][indexLow + 1] = *pPt;
-				quadrants[3].erase(quadrants[3].begin() + indexLow + 2, quadrants[3].begin() + indexHi -1);
-				goto nextPoint;
+				if (indexLow + 2 != indexHi)
+					quadrants[3].erase(quadrants[3].begin() + indexLow + 2, quadrants[3].begin() + indexHi -1);
 			}
+			++pPt;
+			continue;
 		}
 
 	currentPointNotPartOfq4Hull:
-		// *************************************** All quadrant are done
-
-	nextPoint:
 		pPt++;
 	}
 }
@@ -414,49 +395,21 @@ vector<pair<double, double>> OuelletHull::GetResultAsVector() {
 	quadrant_start_and_end_indexes[0].second = quadrants[0].size() - 1;
 	pair<double, double> pointLast = quadrants[0][quadrant_start_and_end_indexes[0].second];
 
-	if (quadrants[1].size() == 1) {
-		quadrant_start_and_end_indexes[1].second = 0;
-		if (compare_points(quadrants[1].front(), pointLast))
-			quadrant_start_and_end_indexes[1].first = 1;
-		else {
-			quadrant_start_and_end_indexes[1].first = 0;
-			pointLast = quadrants[1].front();
+	for (int i = 1; i != 4; ++i) {
+		if (quadrants[i].size() == 1) {
+			quadrant_start_and_end_indexes[i].second = 0;
+			if (compare_points(quadrants[i].front(), pointLast))
+				quadrant_start_and_end_indexes[i].first = 1;
+			else {
+				quadrant_start_and_end_indexes[i].first = 0;
+				pointLast = quadrants[i].front();
+			}
 		}
-	}
-	else {
-		quadrant_start_and_end_indexes[1].first = compare_points(quadrants[1].front(), pointLast) ? 1 : 0;
-		quadrant_start_and_end_indexes[1].second = quadrants[1].size() - 1;
-		pointLast = quadrants[1][quadrant_start_and_end_indexes[1].second];
-	}
-
-	if (quadrants[2].size() == 1) {
-		quadrant_start_and_end_indexes[2].second = 0;
-		if (compare_points(quadrants[2].front(), pointLast))
-			quadrant_start_and_end_indexes[2].first = 1;
 		else {
-			quadrant_start_and_end_indexes[2].first = 0;
-			pointLast = quadrants[2].front();
+			quadrant_start_and_end_indexes[i].first = compare_points(quadrants[i].front(), pointLast) ? 1 : 0;
+			quadrant_start_and_end_indexes[i].second = quadrants[i].size() - 1;
+			pointLast = quadrants[i][quadrant_start_and_end_indexes[i].second];
 		}
-	}
-	else {
-		quadrant_start_and_end_indexes[2].first = compare_points(quadrants[2].front(), pointLast) ? 1 : 0;
-		quadrant_start_and_end_indexes[2].second = quadrants[2].size() - 1;
-		pointLast = quadrants[2][quadrant_start_and_end_indexes[2].second];
-	}
-
-	if (quadrants[3].size() == 1) {
-		quadrant_start_and_end_indexes[3].second = 0;
-		if (compare_points(quadrants[3].front(), pointLast))
-			quadrant_start_and_end_indexes[3].first = 1;
-		else {
-			quadrant_start_and_end_indexes[3].first = 0;
-			pointLast = quadrants[3].front();
-		}
-	}
-	else {
-		quadrant_start_and_end_indexes[3].first = compare_points(quadrants[3].front(), pointLast) ? 1 : 0;
-		quadrant_start_and_end_indexes[3].second = quadrants[3].size() - 1;
-		pointLast = quadrants[3][quadrant_start_and_end_indexes[3].second];
 	}
 
 	if (compare_points(quadrants[0][quadrant_start_and_end_indexes[0].first], pointLast))
