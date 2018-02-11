@@ -94,289 +94,85 @@ void OuelletHull::CalcConvexHull() {
 
 	pPt = points.data();
 
-	for (int n = this->points.size() - 1; n >= 0; --n) { // -1 because 0 bound.
+	for (int n = this->points.size() - 1; n >= 0; --n) { // TODO make simpler
 		pair<double, double>& pt = *pPt;
 
-		// ****************************************************************
-		// Q1 Calc
-		// ****************************************************************
+		for (size_t i = 0; i != 4; ++i) {
+			if (i == 0 && pt.first > initialization_maximums_for_quadrants[0].second.first && pt.second > initialization_maximums_for_quadrants[0].first.second
+			 || i == 1 && pt.first < initialization_maximums_for_quadrants[1].first.first && pt.second > initialization_maximums_for_quadrants[1].second.second
+			 || i == 2 && pt.first < initialization_maximums_for_quadrants[2].second.first && pt.second < initialization_maximums_for_quadrants[2].first.second
+			 || i == 3 && pt.first > initialization_maximums_for_quadrants[3].first.first && pt.second < initialization_maximums_for_quadrants[3].second.second)
+			{
+				indexLow = 0;
+				indexHi = quadrants[i].size();
 
-		// Begin get insertion point
-		if (pt.first > initialization_maximums_for_quadrants[0].second.first && pt.second > initialization_maximums_for_quadrants[0].first.second) { // Is point is in Q1
-			indexLow = 0;
-			indexHi = quadrants[0].size();
+				bool breaker = false;
+				while (indexLow < indexHi - 1) {
+					index = ((indexHi - indexLow) >> 1) + indexLow;
 
-			while (indexLow < indexHi - 1) {
-				index = ((indexHi - indexLow) >> 1) + indexLow;
+					if (i == 0 && pt.first <= quadrants[0][index].first && pt.second <= quadrants[0][index].second
+					 || i == 1 && pt.first >= quadrants[1][index].first && pt.second <= quadrants[1][index].second
+					 || i == 2 && pt.first >= quadrants[2][index].first && pt.second >= quadrants[2][index].second
+					 || i == 3 && pt.first <= quadrants[3][index].first && pt.second >= quadrants[3][index].second)
+						breaker = true; // No calc needed
 
-				if (pt.first <= quadrants[0][index].first && pt.second <= quadrants[0][index].second)
-					goto currentPointNotPartOfq1Hull; // No calc needed
+					if ((i == 0 || i == 1) && pt.first > quadrants[i][index].first
+					|| pt.first < quadrants[i][index].first) {
+						indexHi = index;
+						continue;
+					}
 
-				if (pt.first > quadrants[0][index].first) {
-					indexHi = index;
+					if ((i == 0 || i == 1) && pt.first < quadrants[i][index].first
+					|| pt.first > quadrants[i][index].first) {
+						indexLow = index;
+						continue;
+					}
+
+					indexLow = index - 1;
+					indexHi = index + 1;
+					break;
+				}
+				if (breaker)
 					continue;
+
+				// Here indexLow should contains the index where the point should be inserted 
+				// if calculation does not invalidate it.
+
+				if (!right_turn(quadrants[i][indexLow], quadrants[i][indexHi], pt))
+					continue;
+
+				// HERE: We should insert a new candidate as a Hull Point (until a new one could invalidate this one, if any).
+
+				// indexLow is the index of the point before the place where the new point should be inserted as the new candidate of ConveHull Point.
+				// indexHi is the index of the point after the place where the new point should be inserted as the new candidate of ConveHull Point.
+				// But indexLow and indexHi can change because it could invalidate many points before or after.
+
+				// Find lower bound (remove point invalidate by the new one that come before)
+				while (indexLow > 0) {
+					if (right_turn(quadrants[i][indexLow - 1], pt, quadrants[i][indexLow]))
+						break; // We found the lower index limit of points to keep. The new point should be added right after indexLow.
+					indexLow--;
 				}
 
-				if (pt.first < quadrants[0][index].first) {
-					indexLow = index;
-					continue;
+				// Find upper bound (remove point invalidate by the new one that come after)
+				int maxIndexHi = quadrants[i].size() - 1;
+				while (indexHi < maxIndexHi) {
+					if (right_turn(pt, quadrants[i][indexHi + 1], quadrants[i][indexHi]))
+						break; // We found the higher index limit of points to keep. The new point should be added right before indexHi.
+					indexHi++;
 				}
 
-				indexLow = index - 1;
-				indexHi = index + 1;
+				if (indexLow + 1 == indexHi)
+					quadrants[i].insert(quadrants[i].begin() + indexHi, pt);
+				else {
+					quadrants[i][indexLow + 1] = *pPt;
+					if (indexLow + 2 != indexHi)
+						quadrants[i].erase(quadrants[i].begin() + indexLow + 2, quadrants[i].begin() + indexHi -1);
+				}
 				break;
 			}
-
-			// Here indexLow should contains the index where the point should be inserted 
-			// if calculation does not invalidate it.
-
-			if (!right_turn(quadrants[0][indexLow], quadrants[0][indexHi], pt))
-				goto currentPointNotPartOfq1Hull;
-
-			// HERE: We should insert a new candidate as a Hull Point (until a new one could invalidate this one, if any).
-
-			// indexLow is the index of the point before the place where the new point should be inserted as the new candidate of ConveHull Point.
-			// indexHi is the index of the point after the place where the new point should be inserted as the new candidate of ConveHull Point.
-			// But indexLow and indexHi can change because it could invalidate many points before or after.
-
-			// Find lower bound (remove point invalidate by the new one that come before)
-			while (indexLow > 0) {
-				if (right_turn(quadrants[0][indexLow - 1], pt, quadrants[0][indexLow]))
-					break; // We found the lower index limit of points to keep. The new point should be added right after indexLow.
-				indexLow--;
-			}
-
-			// Find upper bound (remove point invalidate by the new one that come after)
-			int maxIndexHi = quadrants[0].size() - 1;
-			while (indexHi < maxIndexHi) {
-				if (right_turn(pt, quadrants[0][indexHi + 1], quadrants[0][indexHi]))
-					break; // We found the higher index limit of points to keep. The new point should be added right before indexHi.
-				indexHi++;
-			}
-
-			if (indexLow + 1 == indexHi)
-				quadrants[0].insert(quadrants[0].begin() + indexHi, pt);
-			else {
-				quadrants[0][indexLow + 1] = *pPt;
-				if (indexLow + 2 != indexHi)
-					quadrants[0].erase(quadrants[0].begin() + indexLow + 2, quadrants[0].begin() + indexHi -1);
-			}
-			++pPt;
-			continue;
 		}
-
-	currentPointNotPartOfq1Hull:
-
-		// ****************************************************************
-		// Q2 Calc
-		// ****************************************************************
-
-		// Begin get insertion point
-		if (pt.first < initialization_maximums_for_quadrants[1].first.first && pt.second > initialization_maximums_for_quadrants[1].second.second) { // Is point is in q2
-			indexLow = 0;
-			indexHi = quadrants[1].size();
-
-			while (indexLow < indexHi - 1) {
-				index = ((indexHi - indexLow) >> 1) + indexLow;
-
-				if (pt.first >= quadrants[1][index].first && pt.second <= quadrants[1][index].second)
-					goto currentPointNotPartOfq2Hull; // No calc needed
-
-				if (pt.first > quadrants[1][index].first) {
-					indexHi = index;
-					continue;
-				}
-
-				if (pt.first < quadrants[1][index].first) {
-					indexLow = index;
-					continue;
-				}
-
-				indexLow = index - 1;
-				indexHi = index + 1;
-				break;
-			}
-
-			// Here indexLow should contains the index where the point should be inserted 
-			// if calculation does not invalidate it.
-
-			if (!right_turn(quadrants[1][indexLow], quadrants[1][indexHi], pt))
-				goto currentPointNotPartOfq2Hull;
-
-			// HERE: We should insert a new candidate as a Hull Point (until a new one could invalidate this one, if any).
-
-			// indexLow is the index of the point before the place where the new point should be inserted as the new candidate of ConveHull Point.
-			// indexHi is the index of the point after the place where the new point should be inserted as the new candidate of ConveHull Point.
-			// But indexLow and indexHi can change because it could invalidate many points before or after.
-
-			// Find lower bound (remove point invalidate by the new one that come before)
-			while (indexLow > 0) {
-				if (right_turn(quadrants[1][indexLow - 1], pt, quadrants[1][indexLow]))
-					break; // We found the lower index limit of points to keep. The new point should be added right after indexLow.
-				indexLow--;
-			}
-
-			// Find upper bound (remove point invalidate by the new one that come after)
-			int maxIndexHi = quadrants[1].size() - 1;
-			while (indexHi < maxIndexHi) {
-				if (right_turn(pt, quadrants[1][indexHi + 1], quadrants[1][indexHi]))
-					break; // We found the higher index limit of points to keep. The new point should be added right before indexHi.
-				indexHi++;
-			}
-
-			if (indexLow + 1 == indexHi)
-				quadrants[1].insert(quadrants[1].begin() + indexHi, pt);
-			else {
-				quadrants[1][indexLow + 1] = *pPt;
-				if (indexLow + 2 != indexHi)
-					quadrants[1].erase(quadrants[1].begin() + indexLow + 2, quadrants[1].begin() + indexHi -1);
-			}
-			++pPt;
-			continue;
-		}
-
-	currentPointNotPartOfq2Hull:
-
-		// ****************************************************************
-		// Q3 Calc
-		// ****************************************************************
-
-		// Begin get insertion point
-		if (pt.first < initialization_maximums_for_quadrants[2].second.first && pt.second < initialization_maximums_for_quadrants[2].first.second) { // Is point is in q3
-			indexLow = 0;
-			indexHi = quadrants[2].size();
-
-			while (indexLow < indexHi - 1) {
-				index = ((indexHi - indexLow) >> 1) + indexLow;
-
-				if (pt.first >= quadrants[2][index].first && pt.second >= quadrants[2][index].second)
-					goto currentPointNotPartOfq3Hull; // No calc needed
-
-				if (pt.first < quadrants[2][index].first) {
-					indexHi = index;
-					continue;
-				}
-
-				if (pt.first > quadrants[2][index].first) {
-					indexLow = index;
-					continue;
-				}
-
-				indexLow = index - 1;
-				indexHi = index + 1;
-				break;
-			}
-
-			// Here indexLow should contains the index where the point should be inserted 
-			// if calculation does not invalidate it.
-
-			if (!right_turn(quadrants[2][indexLow], quadrants[2][indexHi], pt))
-				goto currentPointNotPartOfq3Hull;
-
-			// HERE: We should insert a new candidate as a Hull Point (until a new one could invalidate this one, if any).
-
-			// indexLow is the index of the point before the place where the new point should be inserted as the new candidate of ConveHull Point.
-			// indexHi is the index of the point after the place where the new point should be inserted as the new candidate of ConveHull Point.
-			// But indexLow and indexHi can change because it could invalidate many points before or after.
-
-			// Find lower bound (remove point invalidate by the new one that come before)
-			while (indexLow > 0) {
-				if (right_turn(quadrants[2][indexLow - 1], pt, quadrants[2][indexLow]))
-					break; // We found the lower index limit of points to keep. The new point should be added right after indexLow.
-				indexLow--;
-			}
-
-			// Find upper bound (remove point invalidate by the new one that come after)
-			int maxIndexHi = quadrants[2].size() - 1;
-			while (indexHi < maxIndexHi) {
-				if (right_turn(pt, quadrants[2][indexHi + 1], quadrants[2][indexHi]))
-					break; // We found the higher index limit of points to keep. The new point should be added right before indexHi.
-				indexHi++;
-			}
-
-			if (indexLow + 1 == indexHi)
-				quadrants[2].insert(quadrants[2].begin() + indexHi, pt);
-			else {
-				quadrants[2][indexLow + 1] = *pPt;
-				if (indexLow + 2 != indexHi)
-					quadrants[2].erase(quadrants[2].begin() + indexLow + 2, quadrants[2].begin() + indexHi -1);
-			}
-			++pPt;
-			continue;
-		}
-
-	currentPointNotPartOfq3Hull:
-
-		// ****************************************************************
-		// Q4 Calc
-		// ****************************************************************
-
-		// Begin get insertion point
-		if (pt.first > initialization_maximums_for_quadrants[3].first.first && pt.second < initialization_maximums_for_quadrants[3].second.second) { // Is point is in q4
-			indexLow = 0;
-			indexHi = quadrants[3].size();
-
-			while (indexLow < indexHi - 1) {
-				index = ((indexHi - indexLow) >> 1) + indexLow;
-
-				if (pt.first <= quadrants[3][index].first && pt.second >= quadrants[3][index].second)
-					goto currentPointNotPartOfq4Hull; // No calc needed
-
-				if (pt.first < quadrants[3][index].first) {
-					indexHi = index;
-					continue;
-				}
-
-				if (pt.first > quadrants[3][index].first) {
-					indexLow = index;
-					continue;
-				}
-
-				indexLow = index - 1;
-				indexHi = index + 1;
-				break;
-			}
-
-			// Here indexLow should contains the index where the point should be inserted 
-			// if calculation does not invalidate it.
-
-			if (!right_turn(quadrants[3][indexLow], quadrants[3][indexHi], pt))
-				goto currentPointNotPartOfq4Hull;
-
-			// HERE: We should insert a new candidate as a Hull Point (until a new one could invalidate this one, if any).
-
-			// indexLow is the index of the point before the place where the new point should be inserted as the new candidate of ConveHull Point.
-			// indexHi is the index of the point after the place where the new point should be inserted as the new candidate of ConveHull Point.
-			// But indexLow and indexHi can change because it could invalidate many points before or after.
-
-			// Find lower bound (remove point invalidate by the new one that come before)
-			while (indexLow > 0) {
-				if (right_turn(quadrants[3][indexLow - 1], pt, quadrants[3][indexLow]))
-					break; // We found the lower index limit of points to keep. The new point should be added right after indexLow.
-				indexLow--;
-			}
-
-			// Find upper bound (remove point invalidate by the new one that come after)
-			int maxIndexHi = quadrants[3].size() - 1;
-			while (indexHi < maxIndexHi) {
-				if (right_turn(pt, quadrants[3][indexHi + 1], quadrants[3][indexHi]))
-					break; // We found the higher index limit of points to keep. The new point should be added right before indexHi.
-				indexHi++;
-			}
-
-			if (indexLow + 1 == indexHi)
-				quadrants[3].insert(quadrants[3].begin() + indexHi, pt);
-			else {
-				quadrants[3][indexLow + 1] = *pPt;
-				if (indexLow + 2 != indexHi)
-					quadrants[3].erase(quadrants[3].begin() + indexLow + 2, quadrants[3].begin() + indexHi -1);
-			}
-			++pPt;
-			continue;
-		}
-
-	currentPointNotPartOfq4Hull:
-		pPt++;
+		++pPt;
 	}
 }
 
