@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <set>
 #include "Ouellet_hull.h"
+#include <chrono>
 
 using namespace std;
 using std::size_t;
@@ -21,23 +22,31 @@ struct square_area { // in this task, I use "line" instead of "line segment", be
 // to be 4 decimal digit precise, doubles are needed => 8B per number
 // the limit 100MB can't be probably reached, because storing 1000 circles that intersect with each other makes
 // 999000 intersections which is 1998000 values so they spend just 16MB which should take max 32MB in vector => still fine
-// the 3 seconds limit is quite vague, but I will try to measure the worst case on my PC
+// the 3 seconds limit is very vague, because standart input can be infinitely slow 
+// and I don't think there is a way to compute worst case scenario in time, because just sending 2000000 values to the output takes several minutes
 // the code can be easily parallelised, but that's probably out of scope of this task
 int main() {
+    auto start = chrono::high_resolution_clock::now();
+    /*ofstream worst_case_input("worst_case_input.txt");
+    worst_case_input << "1000" << endl;
+    for (int i = 0; i != 1000; ++i)
+        worst_case_input << "C " << (-499 + i) * 2000 << " " << (499 - i) * 2000 << " " << "1000000" << endl;
+    return 0;*/
+
     std::size_t element_count;
-    ifstream example_input("example_input.txt");
+    ifstream input("worst_case_input.txt");
+    //ifstream input("example_input.txt");
     string helper;
-    getline(example_input, helper);
+    getline(input, helper);
     element_count = stoi(helper);
-    //example_input.sync();
-    //cin >> element_count;
-    //cin.sync();
+    /*cin >> element_count;
+    cin.sync();*/
     vector<square_area> elements(element_count);
     set<pair<double, double>> collisions; // TODO try other containers
     for (auto& element : elements) {
         string line;
-        //getline(cin, line);
-        getline(example_input, line);
+        /*getline(cin, line);*/
+        getline(input, line);
         istringstream stream(&line.c_str()[2]);
 
         if (line.front() == 'L') {
@@ -71,10 +80,10 @@ int main() {
                 (element_to_check_intersection.lower_left_y >= element.lower_left_y && element_to_check_intersection.lower_left_y <= element.top_right_y)))
             {
                 if (element.type == square_area::square_area_line && element_to_check_intersection.type == square_area::square_area_line) { // TODO caching + optimize
-                    int element_square_x_length = element.second_x - element.first_x;
-                    int element_square_y_length = element.second_y - element.first_y;
-                    int element_to_check_intersection_square_x_length = element_to_check_intersection.second_x - element_to_check_intersection.first_x;
-                    int element_to_check_intersection_square_y_length = element_to_check_intersection.second_y - element_to_check_intersection.first_y;
+                    long long int element_square_x_length = element.second_x - element.first_x;
+                    long long int element_square_y_length = element.second_y - element.first_y;
+                    long long int element_to_check_intersection_square_x_length = element_to_check_intersection.second_x - element_to_check_intersection.first_x;
+                    long long int element_to_check_intersection_square_y_length = element_to_check_intersection.second_y - element_to_check_intersection.first_y;
                     
                     int starting_x_difference = element.first_x - element_to_check_intersection.first_x;
                     int starting_y_difference = element.first_y - element_to_check_intersection.first_y;
@@ -88,7 +97,7 @@ int main() {
                     if (t < 0 || t > 1)
                         continue;
 
-                    collisions.emplace(element.first_x + (t * element_square_x_length), element.first_y + (t * element_square_y_length));
+                    collisions.emplace(element.first_x + t * element_square_x_length, element.first_y + t * element_square_y_length);
                 }
                 else if (element.type == square_area::square_area_circle && element_to_check_intersection.type == square_area::square_area_circle) { // TODO caching + optimize
                     double distance_between_centers_x = element_to_check_intersection.center_x - element.center_x;
@@ -97,8 +106,8 @@ int main() {
                     if (distance_between_centers > element.radius + element_to_check_intersection.radius || distance_between_centers < abs(element.radius - element_to_check_intersection.radius))
                         continue;
 
-                    double element_radius_square = element.radius * element.radius;
-                    double a = (element_radius_square - element_to_check_intersection.radius * element_to_check_intersection.radius + distance_between_centers * distance_between_centers) / (2 * distance_between_centers);
+                    long long int element_radius_square = (long long int)element.radius * element.radius;
+                    double a = (element_radius_square - (long long int)element_to_check_intersection.radius * element_to_check_intersection.radius + distance_between_centers * distance_between_centers) / (2 * distance_between_centers);
                     double h = sqrt(element_radius_square - a * a);
 
                     double helper1 = distance_between_centers_x / distance_between_centers;
@@ -116,14 +125,14 @@ int main() {
                     square_area& line = element.type == square_area::square_area_line ? element : element_to_check_intersection;
                     square_area& circle = element.type == square_area::square_area_circle ? element : element_to_check_intersection;
                     
-                    int line_x_length = line.second_x - line.first_x;
-                    int line_y_length = line.second_y - line.first_y;
+                    long long int line_x_length = line.second_x - line.first_x;
+                    long long int line_y_length = line.second_y - line.first_y;
 
                     int distance_between_circle_center_and_line_first_x = circle.center_x - line.first_x;
                     int distance_between_circle_center_and_line_first_y = circle.center_y - line.first_y;
                     
                     double line_length = hypot(line_x_length, line_y_length);
-                    double distance_between_center_and_line = abs(line_x_length * distance_between_circle_center_and_line_first_y - distance_between_circle_center_and_line_first_x * line_y_length) / line_length;
+                    double distance_between_center_and_line = abs(line_x_length * distance_between_circle_center_and_line_first_y - line_y_length * distance_between_circle_center_and_line_first_x) / line_length;
                     if (distance_between_center_and_line > circle.radius)
                         continue;
                     
@@ -131,7 +140,7 @@ int main() {
                     double Dy = line_y_length / line_length;
                     
                     double distance_from_A_to_closest_point_to_circle_center_on_line = Dx * distance_between_circle_center_and_line_first_x + Dy * distance_between_circle_center_and_line_first_y;
-                    double distance_from_circle_center_to_line = sqrt(circle.radius * circle.radius - distance_between_center_and_line * distance_between_center_and_line);
+                    double distance_from_circle_center_to_line = sqrt((long long int)circle.radius * circle.radius - distance_between_center_and_line * distance_between_center_and_line);
                     
                     double helper1 = distance_from_A_to_closest_point_to_circle_center_on_line - distance_from_circle_center_to_line;
                     double helper3 = helper1 / line_length;
@@ -150,8 +159,8 @@ int main() {
     }
     cout << collisions.size() << endl << fixed << setprecision(4);
     vector<pair<double, double>> collisions_vector(collisions.begin(), collisions.end());
-    for (auto& collision : collisions_vector)
-        cout << collision.first << " " << collision.second << endl;
+    /*for (auto& collision : collisions_vector)
+        cout << collision.first << " " << collision.second << endl;*/
     Ouellet_hull convex_hull_class(move(collisions_vector));
     vector<pair<double, double>> convex_hull = convex_hull_class.get_result();
     cout << convex_hull.size() << endl;
@@ -164,7 +173,7 @@ int main() {
         j = i;
     }
     cout << abs(convex_hull_area_twice / 2);
-
+    cout << endl << "Elapsed time: " << chrono::duration<double>(chrono::high_resolution_clock::now() - start).count() << endl;
     cin.sync();
     cin.ignore();
 }

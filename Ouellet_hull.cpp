@@ -9,8 +9,10 @@ bool Ouellet_hull::is_right_turn(pair<double, double> first_point, pair<double, 
 }
 
 void Ouellet_hull::compute_convex_hull() {
+	if (points.empty())
+		return;
 
-	// init maximums
+	// init dimensions extremes
 	array<pair<pair<double, double>, pair<double, double>>, 4> initialization_maximums_for_quadrants;
 	for (auto& initialization_pair : initialization_maximums_for_quadrants) {
 		initialization_pair.first = points.front();
@@ -57,7 +59,7 @@ void Ouellet_hull::compute_convex_hull() {
 	
 	int index, indexLow, indexHi, quadrant;
 
-	for (auto& point : points) { // compute per quadrant
+	for (auto& point : points) { // compute convex hull points per quadrant
 		if (point.first > initialization_maximums_for_quadrants[0].second.first && point.second > initialization_maximums_for_quadrants[0].first.second)
 			quadrant = 0;
 		else if (point.first < initialization_maximums_for_quadrants[1].first.first && point.second > initialization_maximums_for_quadrants[1].second.second)
@@ -99,30 +101,29 @@ void Ouellet_hull::compute_convex_hull() {
 		if (breaker)
 			continue;
 
-		// Here indexLow should contains the index where the point should be inserted 
-		// if calculation does not invalidate it.
+		// here indexLow should contains the index where the point should be inserted if calculation does not invalidate it
 
 		if (!is_right_turn(quadrants[quadrant][indexLow], quadrants[quadrant][indexHi], point))
 			continue;
 
 		// HERE: We should insert a new candidate as a Hull Point (until a new one could invalidate this one, if any).
 
-		// indexLow is the index of the point before the place where the new point should be inserted as the new candidate of ConveHull Point.
-		// indexHi is the index of the point after the place where the new point should be inserted as the new candidate of ConveHull Point.
-		// But indexLow and indexHi can change because it could invalidate many points before or after.
+		// indexLow is the index of the point before the place where the new point should be inserted as the new candidate of ConveHull Point
+		// indexHi is the index of the point after the place where the new point should be inserted as the new candidate of ConveHull Point
+		// but indexLow and indexHi can change because it could invalidate many points before or after
 
-		// Find lower bound (remove point invalidate by the new one that come before)
+		// find lower bound (remove point invalidate by the new one that come before)
 		while (indexLow > 0) {
 			if (is_right_turn(quadrants[quadrant][indexLow - 1], point, quadrants[quadrant][indexLow]))
-				break; // We found the lower index limit of points to keep. The new point should be added right after indexLow.
+				break; // found the lower index limit of points to keep, new point should be added right after indexLow
 			indexLow--;
 		}
 
-		// Find upper bound (remove point invalidate by the new one that come after)
+		// find upper bound (remove point invalidate by the new one that come after)
 		int maxIndexHi = quadrants[quadrant].size() - 1;
 		while (indexHi < maxIndexHi) {
 			if (is_right_turn(point, quadrants[quadrant][indexHi + 1], quadrants[quadrant][indexHi]))
-				break; // We found the higher index limit of points to keep. The new point should be added right before indexHi.
+				break; // found the higher index limit of points to keep, new point should be added right before indexHi
 			indexHi++;
 		}
 
