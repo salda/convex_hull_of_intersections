@@ -4,13 +4,14 @@
 #include <fstream>
 #include <cmath>
 #include <iomanip>
-#include <set>
 #include "Ouellet_hull.h"
 #include <chrono>
+#include <algorithm>
 
 using namespace std;
 using std::size_t;
 
+// I should change this struct to OOP or something, but it works
 struct square_area { // in this task, I use "line" instead of "line segment", because it's shorter and it's obvious it's a segment
     int lower_left_x, lower_left_y, top_right_x, top_right_y;
     int first_x, first_y, second_x, second_y;
@@ -21,12 +22,14 @@ struct square_area { // in this task, I use "line" instead of "line segment", be
 
 // to be 4 decimal digit precise, doubles are needed => 8B per number
 // the limit 100MB can't be probably reached, because storing 1000 circles that intersect with each other makes
-// 999000 intersections which is 1998000 values so they spend just 16MB which should take max 32MB in vector => still fine
+// 999000 intersections which is 1998000 values so they spend just 16MB which should take max 32MB in vector
+// => still fine and my program takes 21MB in the worst case
 // the 3 seconds limit is very vague, because standart input can be infinitely slow 
 // and I don't think there is a way to compute worst case scenario in time, because just sending 2000000 values to the output takes several minutes
+// but I tested it without outputing millions of values and it takes 0.2s in the worst case
 // the code can be easily parallelised, but that's probably out of scope of this task
 int main() {
-    auto start = chrono::high_resolution_clock::now();
+    /*auto start = chrono::high_resolution_clock::now();*/
     /*ofstream worst_case_input("worst_case_input.txt");
     worst_case_input << "1000" << endl;
     for (int i = 0; i != 1000; ++i)
@@ -34,19 +37,19 @@ int main() {
     return 0;*/
 
     std::size_t element_count;
-    ifstream input("worst_case_input.txt");
-    //ifstream input("example_input.txt");
+    //ifstream input("worst_case_input.txt");
+    /*ifstream input("example_input.txt");
     string helper;
     getline(input, helper);
-    element_count = stoi(helper);
-    /*cin >> element_count;
-    cin.sync();*/
+    element_count = stoi(helper);*/
+    cin >> element_count;
+    cin.sync();
     vector<square_area> elements(element_count);
-    set<pair<double, double>> collisions; // TODO try other containers
+    vector<pair<double, double>> collisions;
     for (auto& element : elements) {
         string line;
-        /*getline(cin, line);*/
-        getline(input, line);
+        getline(cin, line);
+        /*getline(input, line);*/
         istringstream stream(&line.c_str()[2]);
 
         if (line.front() == 'L') {
@@ -97,7 +100,7 @@ int main() {
                     if (t < 0 || t > 1)
                         continue;
 
-                    collisions.emplace(element.first_x + t * element_square_x_length, element.first_y + t * element_square_y_length);
+                    collisions.emplace_back(element.first_x + t * element_square_x_length, element.first_y + t * element_square_y_length);
                 }
                 else if (element.type == square_area::square_area_circle && element_to_check_intersection.type == square_area::square_area_circle) { // TODO caching + optimize
                     double distance_between_centers_x = element_to_check_intersection.center_x - element.center_x;
@@ -118,8 +121,8 @@ int main() {
                     double intersection_area_center_x = element.center_x + a * helper1;
                     double intersection_area_center_y = element.center_y + a * helper2;
 
-                    collisions.emplace(intersection_area_center_x + helper4,  intersection_area_center_y - helper3);
-                    collisions.emplace(intersection_area_center_x - helper4,  intersection_area_center_y + helper3);
+                    collisions.emplace_back(intersection_area_center_x + helper4,  intersection_area_center_y - helper3);
+                    collisions.emplace_back(intersection_area_center_x - helper4,  intersection_area_center_y + helper3);
                 }
                 else { // TODO caching + optimize
                     square_area& line = element.type == square_area::square_area_line ? element : element_to_check_intersection;
@@ -145,23 +148,24 @@ int main() {
                     double helper1 = distance_from_A_to_closest_point_to_circle_center_on_line - distance_from_circle_center_to_line;
                     double helper3 = helper1 / line_length;
                     if (helper3 >= 0 && helper3 <= 1)
-                        collisions.emplace(line.first_x + helper1 * Dx,  line.first_y + helper1 * Dy);
+                        collisions.emplace_back(line.first_x + helper1 * Dx,  line.first_y + helper1 * Dy);
 
                     if (distance_between_center_and_line != circle.radius) {
                         double helper2 = distance_from_A_to_closest_point_to_circle_center_on_line + distance_from_circle_center_to_line;
                         double helper4 = helper2 / line_length;
                         if (helper4 >= 0 && helper4 <= 1)
-                            collisions.emplace(line.first_x + helper2 * Dx,  line.first_y + helper2 * Dy);
+                            collisions.emplace_back(line.first_x + helper2 * Dx,  line.first_y + helper2 * Dy);
                     }
                 }
             }
         }
     }
+    sort(collisions.begin(), collisions.end());
+    collisions.erase(unique(collisions.begin(), collisions.end()), collisions.end());
     cout << collisions.size() << endl << fixed << setprecision(4);
-    vector<pair<double, double>> collisions_vector(collisions.begin(), collisions.end());
-    /*for (auto& collision : collisions_vector)
-        cout << collision.first << " " << collision.second << endl;*/
-    Ouellet_hull convex_hull_class(move(collisions_vector));
+    for (auto& collision : collisions)
+        cout << collision.first << " " << collision.second << endl;
+    Ouellet_hull convex_hull_class(move(collisions));
     vector<pair<double, double>> convex_hull = convex_hull_class.get_result();
     cout << convex_hull.size() << endl;
     for (auto& element : convex_hull)
@@ -173,7 +177,7 @@ int main() {
         j = i;
     }
     cout << abs(convex_hull_area_twice / 2);
-    cout << endl << "Elapsed time: " << chrono::duration<double>(chrono::high_resolution_clock::now() - start).count() << endl;
+    /*cout << endl << "Elapsed time: " << chrono::duration<double>(chrono::high_resolution_clock::now() - start).count() << endl;
     cin.sync();
-    cin.ignore();
+    cin.ignore();*/
 }
