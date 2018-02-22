@@ -38,18 +38,20 @@ int main() {
 
     std::size_t element_count;
     //ifstream input("worst_case_input.txt");
-    /*ifstream input("example_input.txt");
+    ifstream input("example_input.txt");
     string helper;
     getline(input, helper);
-    element_count = stoi(helper);*/
-    cin >> element_count;
-    cin.sync();
+    element_count = stoi(helper);
+    /*cin >> element_count;
+    cin.sync();*/
+
     vector<square_area> elements(element_count);
     vector<pair<double, double>> collisions;
+
     for (auto& element : elements) {
         string line;
-        getline(cin, line);
-        /*getline(input, line);*/
+        /*getline(cin, line);*/
+        getline(input, line);
         istringstream stream(&line.c_str()[2]);
 
         if (line.front() == 'L') {
@@ -160,24 +162,28 @@ int main() {
             }
         }
     }
+
     sort(collisions.begin(), collisions.end());
     collisions.erase(unique(collisions.begin(), collisions.end()), collisions.end());
     cout << collisions.size() << endl << fixed << setprecision(4);
+
     for (auto& collision : collisions)
         cout << collision.first << " " << collision.second << endl;
+
     Ouellet_hull convex_hull_class(move(collisions));
     vector<pair<double, double>> convex_hull = convex_hull_class.get_result();
-    cout << convex_hull.size() << endl;
-    for (auto& element : convex_hull)
-        cout << element.first << " " << element.second << endl;
+    cout << convex_hull.size() << endl;        
+
     double convex_hull_area_twice = 0.0;
     size_t j = convex_hull.size() - 1;
     for (size_t i = 0; i != convex_hull.size(); ++i) {
+        cout << convex_hull[i].first << " " << convex_hull[i].second << endl;
         convex_hull_area_twice += (convex_hull[j].first + convex_hull[i].first) * (convex_hull[j].second - convex_hull[i].second);
         j = i;
     }
     cout << abs(convex_hull_area_twice / 2);
-    /*cout << endl << "Elapsed time: " << chrono::duration<double>(chrono::high_resolution_clock::now() - start).count() << endl;
+
+    /*cout << endl << "Elapsed time: " << chrono::duration<double>(chrono::high_resolution_clock::now() - start).count() << endl;*/
     cin.sync();
-    cin.ignore();*/
+    cin.ignore();
 }

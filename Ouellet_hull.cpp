@@ -14,10 +14,8 @@ void Ouellet_hull::compute_convex_hull() {
 
 	// init dimensions extremes
 	array<pair<pair<double, double>, pair<double, double>>, 4> initialization_maximums_for_quadrants;
-	for (auto& initialization_pair : initialization_maximums_for_quadrants) {
-		initialization_pair.first = points.front();
-		initialization_pair.second = points.front();
-	}
+	for (auto& initialization_pair : initialization_maximums_for_quadrants)
+		initialization_pair.first = initialization_pair.second = points.front();
 	
 	for (auto& point : points) {
 		if (&point == &points.front())
@@ -101,7 +99,7 @@ void Ouellet_hull::compute_convex_hull() {
 		if (breaker)
 			continue;
 
-		// here indexLow should contains the index where the point should be inserted if calculation does not invalidate it
+		// here indexLow should contain the index where the point should be inserted if calculation does not invalidate it
 
 		if (!is_right_turn(quadrants[quadrant][indexLow], quadrants[quadrant][indexHi], point))
 			continue;
@@ -112,14 +110,14 @@ void Ouellet_hull::compute_convex_hull() {
 		// indexHi is the index of the point after the place where the new point should be inserted as the new candidate of ConveHull Point
 		// but indexLow and indexHi can change because it could invalidate many points before or after
 
-		// find lower bound (remove point invalidate by the new one that come before)
+		// find lower bound (remove point invalidated by the new one that came before)
 		while (indexLow > 0) {
 			if (is_right_turn(quadrants[quadrant][indexLow - 1], point, quadrants[quadrant][indexLow]))
 				break; // found the lower index limit of points to keep, new point should be added right after indexLow
 			indexLow--;
 		}
 
-		// find upper bound (remove point invalidate by the new one that come after)
+		// find upper bound (remove point invalidated by the new one that come after)
 		int maxIndexHi = quadrants[quadrant].size() - 1;
 		while (indexHi < maxIndexHi) {
 			if (is_right_turn(point, quadrants[quadrant][indexHi + 1], quadrants[quadrant][indexHi]))
