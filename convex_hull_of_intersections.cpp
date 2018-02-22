@@ -38,20 +38,20 @@ int main() {
 
     std::size_t element_count;
     //ifstream input("worst_case_input.txt");
-    ifstream input("example_input.txt");
+    /*ifstream input("example_input.txt");
     string helper;
     getline(input, helper);
-    element_count = stoi(helper);
-    /*cin >> element_count;
-    cin.sync();*/
+    element_count = stoi(helper);*/
+    cin >> element_count;
+    cin.sync();
 
     vector<square_area> elements(element_count);
     vector<pair<double, double>> collisions;
 
     for (auto& element : elements) {
         string line;
-        /*getline(cin, line);*/
-        getline(input, line);
+        getline(cin, line);
+        //getline(input, line);
         istringstream stream(&line.c_str()[2]);
 
         if (line.front() == 'L') {
@@ -183,7 +183,7 @@ int main() {
     }
     cout << abs(convex_hull_area_twice / 2);
 
-    /*cout << endl << "Elapsed time: " << chrono::duration<double>(chrono::high_resolution_clock::now() - start).count() << endl;*/
+    /*cout << endl << "Elapsed time: " << chrono::duration<double>(chrono::high_resolution_clock::now() - start).count() << endl;
     cin.sync();
-    cin.ignore();
+    cin.ignore();*/
 }
