@@ -8,63 +8,56 @@ bool Ouellet_hull::is_right_turn(pair<double, double> first_point, pair<double, 
 		- (second_point.second - first_point.second) * (third_point.first - first_point.first) < 0;
 }
 
-void Ouellet_hull::compute_convex_hull() {
+void Ouellet_hull::compute_convex_hull(vector<pair<double, double>> points) {
 	if (points.empty())
 		return;
 
-	// init dimensions extremes
-	array<pair<pair<double, double>, pair<double, double>>, 4> initialization_maximums_for_quadrants;
-	for (auto& initialization_pair : initialization_maximums_for_quadrants)
+	array<pair<pair<double, double>, pair<double, double>>, 4> initialization_extremes_for_quadrants;
+	for (auto& initialization_pair : initialization_extremes_for_quadrants)
 		initialization_pair.first = initialization_pair.second = points.front();
 	
 	for (auto& point : points) {
-		if (&point == &points.front())
-			continue;
-
 	    int previous_quadrant = 3;
-    	for (int quadrant = 0; quadrant != 4; ++quadrant) {
-			if ((quadrant == 0 && point.first == initialization_maximums_for_quadrants[3].second.first)
-			 || (quadrant == 1 && point.second == initialization_maximums_for_quadrants[0].second.second)
-			 || (quadrant == 2 && point.first == initialization_maximums_for_quadrants[1].second.first)
-			 || (quadrant == 3 && point.second == initialization_maximums_for_quadrants[2].second.second)) {
-				if ((quadrant == 0 && point.second < initialization_maximums_for_quadrants[3].second.second)
-				 || (quadrant == 1 && point.first > initialization_maximums_for_quadrants[0].second.first)
-				 || (quadrant == 2 && point.second > initialization_maximums_for_quadrants[1].second.second)
-				 || (quadrant == 3 && point.first < initialization_maximums_for_quadrants[2].second.first))
-					initialization_maximums_for_quadrants[previous_quadrant].second = point;
-				else if ((quadrant == 0 && point.second > initialization_maximums_for_quadrants[0].first.second)
-					  || (quadrant == 1 && point.first < initialization_maximums_for_quadrants[1].first.first)
-					  || (quadrant == 2 && point.second < initialization_maximums_for_quadrants[2].first.second)
-					  || (quadrant == 3 && point.first > initialization_maximums_for_quadrants[3].first.first))
-					initialization_maximums_for_quadrants[quadrant].first = point;
+		for (int quadrant = 0; quadrant != 4; ++quadrant) {
+			if (((quadrant == 0 || quadrant == 2) && point.first == initialization_extremes_for_quadrants[previous_quadrant].second.first)
+			 || ((quadrant == 1 || quadrant == 3) && point.second == initialization_extremes_for_quadrants[previous_quadrant].second.second)) {
+				if ((quadrant == 0 && point.second < initialization_extremes_for_quadrants[previous_quadrant].second.second)
+				 || (quadrant == 1 && point.first > initialization_extremes_for_quadrants[previous_quadrant].second.first)
+				 || (quadrant == 2 && point.second > initialization_extremes_for_quadrants[previous_quadrant].second.second)
+				 || (quadrant == 3 && point.first < initialization_extremes_for_quadrants[previous_quadrant].second.first))
+					initialization_extremes_for_quadrants[previous_quadrant].second = point;
+				else if ((quadrant == 0 && point.second > initialization_extremes_for_quadrants[previous_quadrant].first.second)
+					  || (quadrant == 1 && point.first < initialization_extremes_for_quadrants[previous_quadrant].first.first)
+					  || (quadrant == 2 && point.second < initialization_extremes_for_quadrants[previous_quadrant].first.second)
+					  || (quadrant == 3 && point.first > initialization_extremes_for_quadrants[previous_quadrant].first.first))
+					initialization_extremes_for_quadrants[quadrant].first = point;
 			}
-			else if ((quadrant == 0 && point.first > initialization_maximums_for_quadrants[3].second.first)
-				  || (quadrant == 1 && point.second > initialization_maximums_for_quadrants[0].second.second)
-				  || (quadrant == 2 && point.first < initialization_maximums_for_quadrants[1].second.first)
-				  || (quadrant == 3 && point.second < initialization_maximums_for_quadrants[2].second.second)) {
-				initialization_maximums_for_quadrants[previous_quadrant].second = point;
-				initialization_maximums_for_quadrants[quadrant].first = point;
+			else if ((quadrant == 0 && point.first > initialization_extremes_for_quadrants[previous_quadrant].second.first)
+				  || (quadrant == 1 && point.second > initialization_extremes_for_quadrants[previous_quadrant].second.second)
+				  || (quadrant == 2 && point.first < initialization_extremes_for_quadrants[previous_quadrant].second.first)
+				  || (quadrant == 3 && point.second < initialization_extremes_for_quadrants[previous_quadrant].second.second)) {
+				initialization_extremes_for_quadrants[previous_quadrant].second = point;
+				initialization_extremes_for_quadrants[quadrant].first = point;
 			}
         	previous_quadrant = quadrant;
 		}
 	}
 
 	for (int quadrant = 0; quadrant != 4; ++quadrant) { // init quadrants
-		quadrants[quadrant].push_back(initialization_maximums_for_quadrants[quadrant].first);
-		if (initialization_maximums_for_quadrants[quadrant].first != initialization_maximums_for_quadrants[quadrant].second)
-			quadrants[quadrant].push_back(initialization_maximums_for_quadrants[quadrant].second);
+		quadrants[quadrant].push_back(initialization_extremes_for_quadrants[quadrant].first);
+		if (initialization_extremes_for_quadrants[quadrant].first != initialization_extremes_for_quadrants[quadrant].second)
+			quadrants[quadrant].push_back(initialization_extremes_for_quadrants[quadrant].second);
 	}
 	
 	int index, indexLow, indexHi, quadrant;
-
-	for (auto& point : points) { // compute convex hull points per quadrant
-		if (point.first > initialization_maximums_for_quadrants[0].second.first && point.second > initialization_maximums_for_quadrants[0].first.second)
+	for (auto& point : points) { // filter non convex hull points
+		if (point.first > initialization_extremes_for_quadrants[0].second.first && point.second > initialization_extremes_for_quadrants[0].first.second)
 			quadrant = 0;
-		else if (point.first < initialization_maximums_for_quadrants[1].first.first && point.second > initialization_maximums_for_quadrants[1].second.second)
+		else if (point.first < initialization_extremes_for_quadrants[1].first.first && point.second > initialization_extremes_for_quadrants[1].second.second)
 			quadrant = 1;
-		else if (point.first < initialization_maximums_for_quadrants[2].second.first && point.second < initialization_maximums_for_quadrants[2].first.second)
+		else if (point.first < initialization_extremes_for_quadrants[2].second.first && point.second < initialization_extremes_for_quadrants[2].first.second)
 			quadrant = 2;
-		else if (point.first > initialization_maximums_for_quadrants[3].first.first && point.second < initialization_maximums_for_quadrants[3].second.second)
+		else if (point.first > initialization_extremes_for_quadrants[3].first.first && point.second < initialization_extremes_for_quadrants[3].second.second)
 			quadrant = 3;
 		else
 			continue;
@@ -82,12 +75,12 @@ void Ouellet_hull::compute_convex_hull() {
 			 || (quadrant == 3 && point.first <= quadrants[3][index].first && point.second >= quadrants[3][index].second))
 				breaker = true; // no computation needed
 
-			if ((quadrant < 2 && point.first > quadrants[quadrant][index].first) || point.first < quadrants[quadrant][index].first) {
+			if ((quadrant < 2 && point.first > quadrants[quadrant][index].first) || point.first < quadrants[quadrant][index].first) { // TODO check "< 2" condition
 				indexHi = index;
 				continue;
 			}
 
-			if ((quadrant < 2 && point.first < quadrants[quadrant][index].first) || point.first > quadrants[quadrant][index].first) {
+			if ((quadrant < 2 && point.first < quadrants[quadrant][index].first) || point.first > quadrants[quadrant][index].first) { // TODO check "< 2" condition
 				indexLow = index;
 				continue;
 			}
@@ -96,33 +89,24 @@ void Ouellet_hull::compute_convex_hull() {
 			indexHi = index + 1;
 			break;
 		}
-		if (breaker)
+		if (breaker || !is_right_turn(quadrants[quadrant][indexLow], quadrants[quadrant][indexHi], point))
 			continue;
 
 		// here indexLow should contain the index where the point should be inserted if calculation does not invalidate it
 
-		if (!is_right_turn(quadrants[quadrant][indexLow], quadrants[quadrant][indexHi], point))
-			continue;
-
-		// HERE: We should insert a new candidate as a Hull Point (until a new one could invalidate this one, if any).
-
-		// indexLow is the index of the point before the place where the new point should be inserted as the new candidate of ConveHull Point
-		// indexHi is the index of the point after the place where the new point should be inserted as the new candidate of ConveHull Point
-		// but indexLow and indexHi can change because it could invalidate many points before or after
-
-		// find lower bound (remove point invalidated by the new one that came before)
+		// find lower bound (remove point invalidated by the new one that comes before)
 		while (indexLow > 0) {
 			if (is_right_turn(quadrants[quadrant][indexLow - 1], point, quadrants[quadrant][indexLow]))
 				break; // found the lower index limit of points to keep, new point should be added right after indexLow
-			indexLow--;
+			--indexLow;
 		}
 
-		// find upper bound (remove point invalidated by the new one that come after)
+		// find upper bound (remove point invalidated by the new one that comes after)
 		int maxIndexHi = quadrants[quadrant].size() - 1;
 		while (indexHi < maxIndexHi) {
 			if (is_right_turn(point, quadrants[quadrant][indexHi + 1], quadrants[quadrant][indexHi]))
 				break; // found the higher index limit of points to keep, new point should be added right before indexHi
-			indexHi++;
+			++indexHi;
 		}
 
 		if (indexLow + 1 == indexHi)
@@ -136,49 +120,17 @@ void Ouellet_hull::compute_convex_hull() {
 }
 
 Ouellet_hull::Ouellet_hull(vector<pair<double, double>> points) {
-	this->points = points;
-	compute_convex_hull();
+	compute_convex_hull(move(points));
 }
 
 vector<pair<double, double>> Ouellet_hull::get_result() {
-	if (this->points.empty())
+	if (quadrants[0].empty())
 		return {};
-
-	array<pair<unsigned int, int>, 4> quadrant_start_and_end_indexes;
-
-	quadrant_start_and_end_indexes[0].first = 0;
-	quadrant_start_and_end_indexes[0].second = quadrants[0].size() - 1;
-	pair<double, double> pointLast = quadrants[0][quadrant_start_and_end_indexes[0].second];
-
-	for (int quadrant = 1; quadrant != 4; ++quadrant) {
-		if (quadrants[quadrant].size() == 1) {
-			quadrant_start_and_end_indexes[quadrant].second = 0;
-			if (quadrants[quadrant][0] == pointLast)
-				quadrant_start_and_end_indexes[quadrant].first = 1;
-			else {
-				quadrant_start_and_end_indexes[quadrant].first = 0;
-				pointLast = quadrants[quadrant][0];
-			}
-		}
-		else {
-			quadrant_start_and_end_indexes[quadrant].first = quadrants[quadrant][0] == pointLast ? 1 : 0;
-			quadrant_start_and_end_indexes[quadrant].second = quadrants[quadrant].size() - 1;
-			pointLast = quadrants[quadrant][quadrant_start_and_end_indexes[quadrant].second];
-		}
-	}
-
-	if (quadrants[0][quadrant_start_and_end_indexes[0].first] == pointLast)
-		++quadrant_start_and_end_indexes[0].first;
-
-	if (quadrant_start_and_end_indexes[0].second - quadrant_start_and_end_indexes[0].first
-	  + quadrant_start_and_end_indexes[1].second - quadrant_start_and_end_indexes[1].first
-	  + quadrant_start_and_end_indexes[2].second - quadrant_start_and_end_indexes[2].first
-	  + quadrant_start_and_end_indexes[3].second - quadrant_start_and_end_indexes[3].first + 4 <= 1) // TODO maybe change condition to "== 1" or just remove part " <= 1"
-		return { pointLast };
 
 	vector<pair<double, double>> results;
 	for (int quadrant = 0; quadrant != 4; ++quadrant)
-		for (int quadrant_element = quadrant_start_and_end_indexes[quadrant].first; quadrant_element <= quadrant_start_and_end_indexes[quadrant].second; ++quadrant_element)
-			results.push_back(quadrants[quadrant][quadrant_element]);
+		results.insert(results.end(), quadrants[quadrant].begin() + (quadrants[quadrant].front() == quadrants[quadrant == 0 ? 3 : quadrant - 1].back() ? 1 : 0), quadrants[quadrant].begin() + quadrants[quadrant].size());
+	if (results.empty())
+		return { quadrants[0][0] };
 	return results;
 }
